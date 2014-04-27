@@ -1,0 +1,3 @@
+[submodule "vimconf"]
+	path = vimconf
+	url = https://github.com/timss/vimconf.git

@@ -1,0 +1,15 @@
+""" clang_complete options
+let g:clang_library_path = '/usr/lib/llvm-3.5/lib/'
+let g:clang_use_library      = 1
+let g:clang_auto_select      = 0
+let g:clang_complete_auto    = 1
+let g:clang_complete_copen   = 1
+let g:clang_complete_macros  = 1
+let g:clang_complete_patters = 1
+set completeopt=menu,longest
+let g:clang_user_options = "-I/usr/include/c++/4.8.2"
+let g:clang_snippets = 1
+let g:clang_snippets_engine = 'clang_complete'
+
+""" YouCompleteMe options
+let g:ycm_extra_conf_globlist = ['~/*']
