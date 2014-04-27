@@ -103,24 +103,6 @@ alias make1mb='mkfile 1m ./1MB.dat'         # make1mb:      Creates a file of 1m
 alias make5mb='mkfile 5m ./5MB.dat'         # make5mb:      Creates a file of 5mb size (all zeros)
 alias make10mb='mkfile 10m ./10MB.dat'      # make10mb:     Creates a file of 10mb size (all zeros)
 
-#   cdf:  'Cd's to frontmost window of MacOS Finder
-#   ------------------------------------------------------
-    cdf () {
-        currFolderPath=$( /usr/bin/osascript <<"    EOT"
-            tell application "Finder"
-                try
-            set currFolder to (folder of the front window as alias)
-                on error
-            set currFolder to (path to desktop folder as alias)
-                end try
-                POSIX path of currFolder
-            end tell
-        EOT
-        )
-        echo "cd to \"$currFolderPath\""
-        cd "$currFolderPath"
-    }
-
 #   extract:  Extract most know archives with one command
 #   ---------------------------------------------------------
     extract () {
