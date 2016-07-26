@@ -7,7 +7,7 @@ SCRIPTPATH=`pwd -P`
 popd > /dev/null
 
 chsh -s $(which zsh)
-mkdir ~/.oh-my-zsh && sh -c "$(curl -fsSL https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
+mkdir ~/.oh-my-zsh && sh -c "$(wget https://raw.githubusercontent.com/robbyrussell/oh-my-zsh/master/tools/install.sh -O -)"
 
 ln -f -s $SCRIPTPATH/vimconf/.vimrc ~/.vimrc
 ln -f -s $SCRIPTPATH/.vimrc.bundles ~/.vimrc.bundles
