@@ -1,6 +1,6 @@
 #!/bin/bash
 
-sudo apt-get install byobu
+sudo apt-get install -y byobu zsh 
 git clone https://github.com/syl20bnr/spacemacs ~/.emacs.d
 pushd `dirname $0` > /dev/null
 SCRIPTPATH=`pwd -P`
