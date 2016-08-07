@@ -1,0 +1,94 @@
+[core]
+	editor = vim
+	pager=less -r
+[color]
+	branch = auto
+	diff = auto
+	status = auto
+[color "branch"]
+	current = red reverse
+	local = cyan
+	remote = green
+[color "diff"]
+	meta = yellow
+	frag = magenta
+	old = cyan bold
+	new = green
+	plain = white
+[color "status"]
+	added = yellow
+	changed = green
+	untracked = cyan
+[push]
+	default = simple
+[merge]
+	renamelimit = 5000
+[alias]
+	#### Shorter alternatives for common commands
+	co = checkout
+	br = branch
+	ci = commit
+	st = status
+	cp = cherry-pick
+	
+	#### Improvement on diff
+	diff = diff --word-diff
+	
+	#### Does a diff against what's staged versus the HEAD
+	dc = diff --cached
+	
+	#### Shorter alternatives for working with stashes
+	sl = stash list
+	sa = stash apply
+	ss = stash save
+	
+	#### The opposite of git add. Works great with a new file.
+	unstage = reset HEAD --
+	
+	#### Gets the information on the last commit
+	last = log -1 HEAD
+	
+	#### Run the GUI version of git
+	visual = !gitk
+	
+	#### Adding some different views for viewing the history.
+	ls = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]%Creset" --decorate
+	ll = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]%Creset" --decorate --numstat
+	lnc = log --pretty=format:"%h\\ %s\\ [%cn]%Creset"
+	lds = log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]%Creset" --decorate --date=short
+	ld = log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]%Creset" --decorate --date=relative
+	le = log --oneline --decorate
+	logtree = log --graph --oneline --decorate --all
+	
+	#### Find out the history of a file
+	filelog = log -u
+	fl = log -u
+	
+	#### Find out all the files that are checked in that match a specific pattern
+	f = "!git ls-files | grep -i"
+	
+	#### Search for content in files that are checked in
+	grep = grep -Iin
+	gr = grep -Iin
+	
+	#### Tells git to "assume" as if the file has been unchanged.
+	#### Useful if you don't want to add to .gitignore or it's temporary.
+	assume = update-index --assume-unchanged
+	unassume = update-index --no-assume-unchanged
+	assumed = "!git ls-files -v | grep ^h | cut -c 3-"
+	unassumeall = "!git assumed | xargs git update-index --no-assume-unchanged"
+	assumeall = "!git st -s | awk {'print $2'} | xargs git assume"
+	
+	#### Handy aliases for working with submodules
+	clone = clone --recursive
+	pull-all = "!git pull --recurse-submodules && git submodule update --recursive --init" 
+	
+	change-commits = "!f() { VAR=$1; OLD=$2; NEW=$3; shift 3; git filter-branch --env-filter \"if [[ $`echo $VAR` = \\\"$OLD\\\" ]]; then export $VAR=\\\"$NEW\\\"; fi\" $@; }; f "
+[user]
+	name = Kern Handa
+	email = kern.handa@gmail.com
+[rerere]
+	enabled = true
+
+[credential]
+	helper = store
