@@ -35,7 +35,7 @@ COMPLETION_WAITING_DOTS="true"
 # Uncomment the following line if you want to disable marking untracked files
 # under VCS as dirty. This makes repository status check for large repositories
 # much, much faster.
-# DISABLE_UNTRACKED_FILES_DIRTY="true"
+DISABLE_UNTRACKED_FILES_DIRTY="true"
 
 # Uncomment the following line if you want to change the command execution time
 # stamp shown in the history command output.
@@ -49,7 +49,7 @@ COMPLETION_WAITING_DOTS="true"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(git zsh)
+plugins=(command-not-found common-aliases dirhistory docker git git-extras mercurial npm python screen sublime web-search zsh zsh-nvm)
 
 # User configuration
 
@@ -70,6 +70,8 @@ export EDITOR='vim'
 
 # Compilation flags
 export ARCHFLAGS="-arch x86_64"
+
+#export LD_LIBRARY_PATH=$HOME/lib
 
 # ssh
 # export SSH_KEY_PATH="~/.ssh/dsa_id"

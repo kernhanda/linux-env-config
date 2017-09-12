@@ -84,6 +84,22 @@
 	pull-all = "!git pull --recurse-submodules && git submodule update --recursive --init" 
 	
 	change-commits = "!f() { VAR=$1; OLD=$2; NEW=$3; shift 3; git filter-branch --env-filter \"if [[ $`echo $VAR` = \\\"$OLD\\\" ]]; then export $VAR=\\\"$NEW\\\"; fi\" $@; }; f "
+    or = "!git fetch origin && git co origin/master"
+
+    prep = "!git fetch origin && git rebase origin/master"
+
+    c = "!git rev-parse HEAD | clip"
+
+    amend = "commit -a --amend"
+
+    sc = "show -s --format=fuller"
+
+    mm = "!git fetch origin && git merge origin/master"
+[git]
+    lineNumber = true
+[grep]
+    lineNumber = true
+    fallbackToNoIndex = true
 [user]
 	name = Kern Handa
 	email = kern.handa@gmail.com
@@ -92,3 +108,5 @@
 
 [credential]
 	helper = store
+[remote "origin"]
+    prune = true
