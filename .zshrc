@@ -49,7 +49,7 @@ DISABLE_UNTRACKED_FILES_DIRTY="true"
 # Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
-plugins=(command-not-found common-aliases dirhistory docker git git-extras mercurial npm python screen sublime web-search zsh zsh-nvm)
+plugins=(command-not-found common-aliases dirhistory git git-extras python)
 
 # User configuration
 
@@ -120,3 +120,6 @@ alias .6='cd ../../../../../../'            # Go back 6 directory levels
     }
 
 _byobu_sourced=1 . /usr/bin/byobu-launch 2>/dev/null || true
+
+export PATH=$HOME/.local/bin:$PATH
+

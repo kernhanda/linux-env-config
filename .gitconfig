@@ -84,9 +84,9 @@
 	pull-all = "!git pull --recurse-submodules && git submodule update --recursive --init" 
 	
 	change-commits = "!f() { VAR=$1; OLD=$2; NEW=$3; shift 3; git filter-branch --env-filter \"if [[ $`echo $VAR` = \\\"$OLD\\\" ]]; then export $VAR=\\\"$NEW\\\"; fi\" $@; }; f "
-    or = "!git fetch origin && git co origin/master"
+    or = "!git fetch origin && git co origin/main"
 
-    prep = "!git fetch origin && git rebase origin/master"
+    prep = "!git fetch origin && git rebase origin/main"
 
     c = "!git rev-parse HEAD | clip"
 
@@ -94,7 +94,7 @@
 
     sc = "show -s --format=fuller"
 
-    mm = "!git fetch origin && git merge origin/master"
+    mm = "!git fetch origin && git merge origin/main"
 [git]
     lineNumber = true
 [grep]
