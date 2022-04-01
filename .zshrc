@@ -122,4 +122,5 @@ alias .6='cd ../../../../../../'            # Go back 6 directory levels
 _byobu_sourced=1 . /usr/bin/byobu-launch 2>/dev/null || true
 
 export PATH=$HOME/.local/bin:$PATH
+export LLVM_SETUP_VARIANT=Conan
 

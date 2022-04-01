@@ -211,4 +211,3 @@ alias mountReadWrite='/sbin/mount -uw /'    # mountReadWrite:   For use when boo
 #   -------------------------------------------------------------------
     alias cleanupDS="find . -type f -name '*.DS_Store' -ls -delete"
 
-_byobu_sourced=1 . /usr/bin/byobu-launch 2>/dev/null || true
