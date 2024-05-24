@@ -1,4 +1,0 @@
-Bundle 'https://github.com/Rip-Rip/clang_complete.git'
-Bundle 'https://github.com/davidhalter/jedi-vim.git'
-Bundle 'https://github.com/Valloric/YouCompleteMe.git'
-Bundle 'https://github.com/altercation/vim-colors-solarized.git'
