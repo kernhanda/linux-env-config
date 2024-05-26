@@ -19,7 +19,7 @@ main() {
   fi
 
   cd "${configDir}" || exit
-  . setup.sh
+  . install.sh
 }
 
 main "$@"
