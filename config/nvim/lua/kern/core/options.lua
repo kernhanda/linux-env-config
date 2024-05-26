@@ -9,6 +9,9 @@ opt.expandtab = true
 opt.autoindent = true
 
 opt.wrap = false
+opt.wrapmargin = 0
+opt.textwidth = 0
+opt.linebreak = true
 
 opt.ignorecase = true
 opt.smartcase = true
