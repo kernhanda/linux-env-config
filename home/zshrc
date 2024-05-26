@@ -257,11 +257,54 @@ KEYTIMEOUT=1
 # Hence they must be after the OMZ sourcing.
 source $ZSH/oh-my-zsh.sh
 
+# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+export PATH=$HOME/.local/bin:$PATH:/opt/nvim
+
+################################################################################
+# Actions with side-effects after sourcing Oh-My-ZSH
+################################################################################
+
+# Set key bindings.
+bindkey -v # vi mode for shell
+bindkey -e # enable C-x-e for shell editor
+# Key bindings for history search.
+bindkey '\e[3~' delete-char
+bindkey '^R' history-incremental-search-backward
+# Explicitly bind home and end keys (in case of terminal compatibility issues)
+bindkey "${terminfo[khome]}" beginning-of-line
+bindkey "${terminfo[kend]}" end-of-line
+
+# Alias `eza` as default `ls` command (if available).
+# This must come after OMZ. (The library overwrites this alias.)
+if _has eza; then
+  alias ls="eza"
+  alias ll="eza -l"
+fi
+
+# Source fzf scripts via local installation.
+# OMZ overwrites some of these scripts, so this must come afterwards.
+if _has fzf; then
+  # Source fzf key bindings and auto-completion.
+  # NOTE: This uses the ${fzf_path} variable from earlier. This is intentional.
+  source "${fzf_path}/shell/key-bindings.zsh"
+  source "${fzf_path}/shell/completion.zsh"
+fi
+
+if _has zoxide; then
+  export ___ZOXIDE_DETECTED=true
+  eval "$(zoxide init --cmd cd zsh)"
+fi
+
+alias find="fd"
+alias grep="rg"
+
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+
 # Source local zshrc configs.
 if [[ -f ~/.zshrc.local ]]; then
   source ~/.zshrc.local
 fi
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
