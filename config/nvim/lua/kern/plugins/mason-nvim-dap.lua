@@ -9,6 +9,7 @@ return {
 		require("mason-nvim-dap").setup({
 			automatic_setup = true,
 			ensure_installed = {
+				"debugpy",
 				"bash",
 				"codelldb",
 				"python",

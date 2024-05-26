@@ -28,32 +28,39 @@ return {
 		mason_lspconfig.setup({
 			-- list of servers for mason to install
 			ensure_installed = {
-				"clangd",
-				"neocmake",
-				"pyright",
-				"lua_ls",
 				"autotools_ls",
+				"clangd",
+				"lua_ls",
 				"markdown_oxide",
-				"rust_analyzer",
-				"taplo",
-				"gitlab_ci_ls",
-				"tsserver",
-				"html",
-				"cssls",
 				"marksman",
-				"yamlls",
+				"pyright",
+				"rust_analyzer",
 			},
+		})
 
-			mason_tool_installer.setup({
-				ensure_installed = {
-					"prettierd",
-					"stylua",
-					"isort",
-					"black",
-					"clang-format",
-					"codespell",
-				},
-			}),
+		mason_tool_installer.setup({
+			ensure_installed = {
+				"clang-format",
+				"asm-lsp",
+				"black",
+				"tree-sitter-cli",
+				"prettier",
+				"isort",
+				"cmake-language-server",
+				"tree-sitter-cli",
+				"ast-grep",
+				"black",
+				"clang-format",
+				"cmakelang",
+				"cmakelint",
+				"codespell",
+				"codespell",
+				"isort",
+				-- "mypy",
+				"prettier",
+				"prettierd",
+				"stylua",
+			},
 		})
 	end,
 }
