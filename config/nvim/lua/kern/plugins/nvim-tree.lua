@@ -76,7 +76,7 @@ return {
 		keymap.set("n", "?", api.tree.toggle_help)
 		keymap.set("n", "<leader>ee", nvimTreeFocusOrToggle, { desc = "Toggle file explorer" }) -- toggle file explorer
 		keymap.set("n", "<leader>ef", nvimTreefindFileOrToggle, { desc = "Toggle file explorer on current file" }) -- toggle file explorer on current file
-		keymap.set("n", "<leader>ec", "<cmd>NvimTreeCollapse<CR>", { desc = "Collapse file explorer" }) -- collapse file explorer
+		keymap.set("n", "<leader>ec", "<cmd>NvimTreeClose<CR>", { desc = "Collapse file explorer" }) -- collapse file explorer
 		keymap.set("n", "<leader>er", "<cmd>NvimTreeRefresh<CR>", { desc = "Refresh file explorer" }) -- refresh file explorer
 
 		api.events.subscribe(api.events.Event.FileCreated, function(file)
