@@ -19,3 +19,6 @@ keymap.set("n", "<leader>tr", "<cmd>tabp<CR>", { desc = "Prev tab" })
 keymap.set("n", "<leader>td", "<cmd>tabnew %<CR>", { desc = "Dupe current buffer in new tab" })
 
 keymap.set("n", "<leader>!!", "<cmd>Hardtime toggle<cr>", { desc = "Toggle hardtime" })
+
+keymap.set("n", "<leader>zz", "<cmd>ObsidianQuickSwitch TODO<cr>", { desc = "Obsidian TODO" })
+keymap.set("n", "<leader>zx", "<cmd>ObsidianToday<cr>", { desc = "Obsidian Today" })
