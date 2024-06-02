@@ -32,7 +32,7 @@ return {
 				"clangd",
 				"lua_ls",
 				"markdown_oxide",
-				"marksman",
+				-- "marksman",
 				"pyright",
 				"rust_analyzer",
 			},
