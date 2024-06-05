@@ -164,6 +164,9 @@ main() {
   if [[ $BUILD ]]; then
     # Link gitconfig.
     touch ~/.gitconfig
+    # Add a single empty line to the file, because the sed command below expects at least
+    # one line to be present
+    echo > ~/.gitconfig
     sed -i '1i\
 [include]\n\
   path=~/.main.gitconfig\n' ~/.gitconfig
