@@ -9,11 +9,16 @@ _has() {
 sudo apt install -y \
   bat \
   build-essential \
+  clang-15 \
   curl \
   fd-find \
   git \
   gpg \
-  mosh \
+  libssl-dev \
+  pkg-config \
+  python3 \
+  python3-pip \
+  python3-venv \
   ripgrep \
   sudo \
   tmux \
@@ -21,7 +26,7 @@ sudo apt install -y \
   unzip \
   vim \
   wget \
-  zsh
+  zsh \
 
 if ! _has nvim; then
   wget https://github.com/neovim/neovim/releases/download/stable/nvim.appimage
