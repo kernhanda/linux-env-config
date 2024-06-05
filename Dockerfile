@@ -9,10 +9,16 @@ RUN echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selectio
 RUN apt update && apt install -y \
   bat \
   build-essential \
+  clang-15 \
   curl \
   fd-find \
   git \
   gpg \
+  libssl-dev \
+  pkg-config \
+  python3 \
+  python3-pip \
+  python3-venv \
   ripgrep \
   sudo \
   tmux \
@@ -20,12 +26,8 @@ RUN apt update && apt install -y \
   unzip \
   vim \
   wget \
-  python3 \
-  python3-pip \
-  python3-venv \
-  pkg-config \
-  libssl-dev \
-  zsh && rm -rf /var/lib/apt/lists/*
+  zsh \
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /tmp
 
