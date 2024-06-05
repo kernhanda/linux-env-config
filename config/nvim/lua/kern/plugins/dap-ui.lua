@@ -3,6 +3,7 @@ return {
 	"rcarriga/nvim-dap-ui",
 	dependencies = {
 		"mfussenegger/nvim-dap",
+		"nvim-neotest/nvim-nio",
 	},
 	keys = {
 		{ "<F5>", "<CMD>DapContinue<CR>", mode = "n" },
