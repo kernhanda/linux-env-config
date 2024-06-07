@@ -22,3 +22,7 @@ keymap.set("n", "<leader>!!", "<cmd>Hardtime toggle<cr>", { desc = "Toggle hardt
 
 keymap.set("n", "<leader>zz", "<cmd>ObsidianQuickSwitch TODO<cr>", { desc = "Obsidian TODO" })
 keymap.set("n", "<leader>zx", "<cmd>ObsidianToday<cr>", { desc = "Obsidian Today" })
+keymap.set("n", "<leader>zX", "<cmd>ObsidianYesterday<cr>", { desc = "Obsidian Yesterday" })
+keymap.set("n", "<leader>za", "<cmd>ObsidianNew<cr>", { desc = "Obsidian New" })
+keymap.set("n", "<leader>zw", "<cmd>ObsidianWorkspace<cr>", { desc = "Obsidian Workspace" })
+keymap.set("n", "<leader>zs", "<cmd>ObsidianSearch<cr>", { desc = "Obsidian Search" })
