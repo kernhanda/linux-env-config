@@ -3,10 +3,7 @@ vim.g.mapleader = " "
 
 local keymap = vim.keymap -- convenience
 
-keymap.set("n", "<leader>nh", ":nohl<CR>", { desc = "Clear search highlights" })
-
-keymap.set("n", "<leader>+", "<C-a>", { desc = "Increment number" })
-keymap.set("n", "<leader>-", "<C-x>", { desc = "Decrement number" })
+keymap.set("n", "<leader>//", ":nohl<CR>", { desc = "Clear search highlights" })
 
 keymap.set("n", "<leader>n", "<cmd>bn<cr>", { desc = "Next buffer" })
 keymap.set("n", "<leader>p", "<cmd>bp<cr>", { desc = "Prev buffer" })
@@ -26,3 +23,5 @@ keymap.set("n", "<leader>zX", "<cmd>ObsidianYesterday<cr>", { desc = "Obsidian Y
 keymap.set("n", "<leader>za", "<cmd>ObsidianNew<cr>", { desc = "Obsidian New" })
 keymap.set("n", "<leader>zw", "<cmd>ObsidianWorkspace<cr>", { desc = "Obsidian Workspace" })
 keymap.set("n", "<leader>zs", "<cmd>ObsidianSearch<cr>", { desc = "Obsidian Search" })
+
+keymap.set("n", "<leader>ev", "<cmd>tabnew $HOME/.config/nvim<cr>", { desc = "Edit $MYVIMRC" })
