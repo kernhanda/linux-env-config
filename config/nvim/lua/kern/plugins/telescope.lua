@@ -66,9 +66,6 @@ return {
 		-- set keymaps
 		local keymap = vim.keymap -- for conciseness
 
-		keymap.set("n", "<A-p>", "<cmd>Telescope buffers<cr>", { desc = "Fuzzy find files in cwd" })
-		keymap.set("n", "<C-p>", "<cmd>Telescope find_files<cr>", { desc = "Fuzzy find buffers" })
-		keymap.set("n", "<C-o>", "<cmd>Telescope lsp_document_symbols<cr>", { desc = "Fuzzy find symbols" })
 		keymap.set("n", "<leader>ft", "<cmd>Telescope lsp_document_symbols<cr>", { desc = "Fuzzy find symbols" })
 		keymap.set("n", "<leader>fb", "<cmd>Telescope buffers<cr>", { desc = "Fuzzy find buffers" })
 		keymap.set("n", "<leader>ff", "<cmd>Telescope find_files<cr>", { desc = "Fuzzy find files in cwd" })
