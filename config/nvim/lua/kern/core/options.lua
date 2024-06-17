@@ -29,6 +29,10 @@ opt.splitbelow = true
 
 opt.swapfile = false
 
+vim.cmd([[
+digraph fi 128293 " fire emoji
+]])
+
 -- cf https://github.com/nvim-tree/nvim-tree.lua/wiki/Auto-Close#marvinth01
 vim.api.nvim_create_autocmd("QuitPre", {
 	callback = function()
