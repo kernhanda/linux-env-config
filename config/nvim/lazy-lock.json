@@ -52,7 +52,6 @@
   "nvim_comment": { "branch": "main", "commit": "e9ac16ab056695cad6461173693069ec070d2b23" },
   "obsidian.nvim": { "branch": "main", "commit": "db41b1f20459293436fab510bec58c82a73bd1f7" },
   "plenary.nvim": { "branch": "master", "commit": "a3e3bc82a3f95c5ed0d7201546d5d2c19b20d683" },
-  "precognition.nvim": { "branch": "main", "commit": "b40c3539f95504bea2ac4ac4dc866a95edba6d4d" },
   "rainbow-delimiters.nvim": { "branch": "master", "commit": "051c3c074ac48a95da5af91d399ba13485324969" },
   "telescope-dap.nvim": { "branch": "master", "commit": "8c88d9716c91eaef1cdea13cb9390d8ef447dbfe" },
   "telescope-fzf-native.nvim": { "branch": "main", "commit": "9ef21b2e6bb6ebeaf349a0781745549bbb870d27" },
