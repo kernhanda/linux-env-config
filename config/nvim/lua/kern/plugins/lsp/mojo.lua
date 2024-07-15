@@ -1,5 +1,5 @@
 return {
-    "ovikrai/mojo-syntax",
+    "kernhanda/mojo-syntax",
     config = function()
         require("lspconfig").mojo.setup({})
     end,
