@@ -1,1 +1,13 @@
 --smart-case
+
+# Add MLIR file type
+--type-add
+mlir:*.mlir*
+
+# Add TableGen file type
+--type-add
+td:*.td*
+
+# Add Mojo file type
+--type-add
+mojo:*.mojo*
