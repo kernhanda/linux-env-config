@@ -48,11 +48,11 @@
 	ss = stash save
 
 	#### Adding some different views for viewing the history.
-	ls = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]%Creset" --decorate
-	ll = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]%Creset" --decorate --numstat
-	lnc = log --pretty=format:"%h\\ %s\\ [%cn]%Creset"
-	lds = log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]%Creset" --decorate --date=short
-	ld = log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%C(cyan)\\ [%cn]%Creset" --decorate --date=relative
+	ls = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%C(cyan)\\ [%an]%Creset" --decorate
+	ll = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%C(cyan)\\ [%an]%Creset" --decorate --numstat
+	lnc = log --pretty=format:"%h\\ %s\\ [%an]%Creset"
+	lds = log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%C(cyan)\\ [%an]%Creset" --decorate --date=short
+	ld = log --pretty=format:"%C(yellow)%h\\ %ad%Cred%d\\ %Creset%s%C(cyan)\\ [%an]%Creset" --decorate --date=relative
 	le = log --oneline --decorate
 	logtree = log --graph --oneline --decorate --all
 
