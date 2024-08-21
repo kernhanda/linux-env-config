@@ -9,13 +9,12 @@ keymap.set("n", "<leader>n", "<cmd>bn<cr>", { desc = "Next buffer" })
 keymap.set("n", "<leader>p", "<cmd>bp<cr>", { desc = "Prev buffer" })
 keymap.set("n", "<leader>ww", "<cmd>set wrap!<cr>", { desc = "Toggle word wrap" })
 
-keymap.set("n", "<leader>tn", "<cmd>tabnew<CR>", { desc = "Open new tab" })
-keymap.set("n", "<leader>tc", "<cmd>tabclose<CR>", { desc = "Close current tab" })
-keymap.set("n", "<leader>ty", "<cmd>tabn<CR>", { desc = "Next tab" })
-keymap.set("n", "<leader>tr", "<cmd>tabp<CR>", { desc = "Prev tab" })
+keymap.set("n", "<leader>tc", "<cmd>tabnew<CR>", { desc = "Open new tab" })
+keymap.set("n", "<leader>tw", "<cmd>tabclose<CR>", { desc = "Close current tab" })
+keymap.set("n", "<leader>t.", "<cmd>tabn<CR>", { desc = "Next tab" })
+keymap.set("n", "<leader>t,", "<cmd>tabp<CR>", { desc = "Prev tab" })
 keymap.set("n", "<leader>td", "<cmd>tabnew %<CR>", { desc = "Dupe current buffer in new tab" })
 
-keymap.set("n", "<leader>!!", "<cmd>Hardtime toggle<cr>", { desc = "Toggle hardtime" })
 
 keymap.set("n", "<leader>zz", "<cmd>ObsidianQuickSwitch TODO<cr>", { desc = "Obsidian TODO" })
 keymap.set("n", "<leader>zx", "<cmd>ObsidianToday<cr>", { desc = "Obsidian Today" })
