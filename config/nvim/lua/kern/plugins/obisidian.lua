@@ -6,6 +6,10 @@ for pair in str:gmatch("([^;]+)") do
 	table.insert(obsidian_workspaces, { name = name, path = path })
 end
 
+if str == "" then
+	return {}
+end
+
 return {
 	"epwalsh/obsidian.nvim",
 	version = "*", -- recommended, use latest release instead of latest commit
