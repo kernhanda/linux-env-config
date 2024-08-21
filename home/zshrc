@@ -260,6 +260,11 @@ source $ZSH/oh-my-zsh.sh
 
 export PATH=$HOME/.local/bin:$PATH:/opt/nvim
 
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
+precmd() {
+    echo -e '\a'
+}
+
 ################################################################################
 # Actions with side-effects after sourcing Oh-My-ZSH
 ################################################################################
