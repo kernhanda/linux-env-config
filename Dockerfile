@@ -66,9 +66,6 @@ RUN ./install.sh -t build
 RUN mkdir -p ~/.local/bin
 RUN ln -s $(which fdfind) ~/.local/bin/fd
 
-# Install zoxide. (This needs to be done for the local, non-root user.)
-RUN curl -sSf https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash -u --
-
 # Needs to be fully qualified
 ENV NVM_DIR /home/${USER}/.nvm
 ENV NODE_VERSION 20.13.1

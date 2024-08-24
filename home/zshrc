@@ -295,11 +295,6 @@ if _has fzf; then
   source "${fzf_path}/shell/completion.zsh"
 fi
 
-if _has zoxide; then
-  export ___ZOXIDE_DETECTED=true
-  eval "$(zoxide init --cmd cd zsh)"
-fi
-
 alias find="fd"
 alias grep="rg"
 
