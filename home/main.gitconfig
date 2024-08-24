@@ -35,6 +35,7 @@
 	ci = commit
 	st = status
 	cp = cherry-pick
+  up = push -u origin HEAD
 
 	#### Improvement on diff
 	diff = diff --word-diff
