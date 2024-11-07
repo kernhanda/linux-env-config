@@ -304,7 +304,11 @@ export NVM_DIR="$HOME/.nvm"
 
 export OBSIDIAN_VAULTS=""
 
+# Unbind ctrl+l to clear
+bindkey -r "^L"
+
 # Source local zshrc configs.
 if [[ -f ~/.zshrc.local ]]; then
   source ~/.zshrc.local
 fi
+
