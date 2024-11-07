@@ -24,3 +24,5 @@ keymap.set("n", "<leader>zw", "<cmd>ObsidianWorkspace<cr>", { desc = "Obsidian W
 keymap.set("n", "<leader>zs", "<cmd>ObsidianSearch<cr>", { desc = "Obsidian Search" })
 
 keymap.set("n", "<leader>ev", "<cmd>tabnew $HOME/.config/nvim<cr>", { desc = "Edit $MYVIMRC" })
+
+keymap.set("n", "<leader>bb", "<cmd>ZenMode<cr>", { desc = "ZenMode" })
