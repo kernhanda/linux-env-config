@@ -113,7 +113,6 @@ plugins=(
     history-substring-search
     colored-man-pages
     vi-mode
-    git-auto-fetch
     fast-syntax-highlighting
     zsh-autosuggestions
 )
