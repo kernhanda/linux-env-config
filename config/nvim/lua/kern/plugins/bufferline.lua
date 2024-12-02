@@ -6,11 +6,9 @@ return {
     config = function()
         require("bufferline").setup({
             options = {
+                mode = "tabs",
                 numbers = "none", -- Can be "none", "ordinal", "buffer_id", or "both"
                 close_command = "bdelete! %d", -- Command to close a buffer
-                right_mouse_command = "bdelete! %d", -- Command for right-click buffer close
-                left_mouse_command = "buffer %d", -- Command for left-click buffer switch
-                middle_mouse_command = nil, -- Middle-click disables action
                 indicator = { icon = "▎", style = "icon" }, -- Visual indicator for the active buffer
                 buffer_close_icon = "",
                 modified_icon = "●",
