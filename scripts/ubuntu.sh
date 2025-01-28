@@ -59,7 +59,7 @@ if ! _has lazygit; then
 fi
 
 if ! _has cargo; then
-    curl https://sh.rustup.rs -sSf | sh | yes
+    curl https://sh.rustup.rs -sSf | sh -s -- -y
 fi
 
 if ! _has nvm; then
