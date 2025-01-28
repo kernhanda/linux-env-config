@@ -32,7 +32,7 @@ if ! _has nvim; then
   chmod +x nvim.appimage
   ./nvim.appimage --appimage-extract
   sudo mv squashfs-root /usr/local/bin/nvim-squashfs-root
-  sudo ln -s /usr/local/bin/squashfs-root/AppRun /usr/local/bin/nvim
+  sudo ln -s /usr/local/bin/nvim-squashfs-root/AppRun /usr/local/bin/nvim
   rm nvim.appimage
 fi
 
