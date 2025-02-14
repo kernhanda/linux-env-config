@@ -46,7 +46,13 @@
 	#### Shorter alternatives for working with stashes
 	sl = stash list
 	sa = stash apply
-	ss = stash save
+	ss = stash push
+	sp = stash pop
+
+	#### Rebases
+	ri = rebase --interactive
+	ra = rebase --abort
+	rc = rebase --continue
 
 	#### Adding some different views for viewing the history.
 	ls = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%C(cyan)\\ [%an]%Creset" --decorate
