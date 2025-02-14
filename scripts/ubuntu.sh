@@ -28,7 +28,7 @@ sudo apt install -y \
   zsh \
 
 if ! _has nvim; then
-  wget https://github.com/neovim/neovim/releases/download/stable/nvim.appimage
+  wget https://github.com/neovim/neovim/releases/download/stable/nvim-linux-x86_64.appimage -O nvim.appimage
   chmod +x nvim.appimage
   ./nvim.appimage --appimage-extract
   sudo mv squashfs-root /usr/local/bin/nvim-squashfs-root
