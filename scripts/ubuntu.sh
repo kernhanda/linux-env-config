@@ -31,8 +31,8 @@ if ! _has nvim; then
   wget https://github.com/neovim/neovim/releases/download/stable/nvim.appimage
   chmod +x nvim.appimage
   ./nvim.appimage --appimage-extract
-  sudo mv squashfs-root /
-  sudo ln -s /squashfs-root/AppRun /usr/bin/nvim
+  sudo mv squashfs-root /usr/local/bin/nvim-squashfs-root
+  sudo ln -s /usr/local/bin/nvim-squashfs-root/AppRun /usr/local/bin/nvim
   rm nvim.appimage
 fi
 
@@ -56,4 +56,12 @@ if ! _has lazygit; then
     tar xf lazygit.tar.gz lazygit
     install lazygit "$HOME"/.local/bin
     rm -r lazygit lazygit.tar.gz
+fi
+
+if ! _has cargo; then
+    curl https://sh.rustup.rs -sSf | sh -s -- -y
+fi
+
+if ! _has nvm; then
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
 fi
