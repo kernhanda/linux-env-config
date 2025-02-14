@@ -9,7 +9,6 @@ _has() {
 sudo apt install -y \
   bat \
   build-essential \
-  clang-15 \
   curl \
   fd-find \
   git \
