@@ -82,7 +82,7 @@ return {
   {
     "nvim-treesitter/nvim-treesitter",
     opts = {
-      ensure_installed = { "cpp", "c" }, -- Ensure C++ and C parsers are installed
+      ensure_installed = { "cpp", "c", "python" }, -- Ensure C++ and C parsers are installed
       highlight = {
         enable = true,
         additional_vim_regex_highlighting = false,
