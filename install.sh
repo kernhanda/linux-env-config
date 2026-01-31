@@ -7,7 +7,13 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DOTFILES_DIR="${SCRIPT_DIR}/dotfiles"
-PACKAGES=(zsh tmux vim git nvim ripgrep editorconfig)
+
+# Package definitions
+PACKAGES_ALL=(zsh tmux vim git nvim ripgrep editorconfig)
+PACKAGES_MINIMAL=(zsh vim git)
+
+# Default to all packages
+PACKAGES=("${PACKAGES_ALL[@]}")
 
 usage() {
   cat <<EOF
@@ -21,15 +27,22 @@ OPTIONS:
   -a, --all       Install all packages (default)
   -r, --remove    Remove (unstow) packages
   -n, --no-omz    Skip oh-my-zsh installation
+  --minimal       Install minimal profile (zsh, vim, git)
+  --full          Install full profile (all packages, default)
   --shellcheck    Lint all shell scripts
 
-PACKAGES:
-  ${PACKAGES[*]}
+PROFILES:
+  minimal: ${PACKAGES_MINIMAL[*]}
+  full:    ${PACKAGES_ALL[*]}
 
-If no packages specified, all packages will be installed.
+PACKAGES:
+  ${PACKAGES_ALL[*]}
+
+If no packages specified, the full profile will be installed.
 
 EXAMPLES:
-  $0                    # Install all packages
+  $0                    # Install all packages (full profile)
+  $0 --minimal          # Install minimal profile
   $0 zsh nvim           # Install only zsh and nvim
   $0 -r zsh             # Remove zsh package
   $0 --no-omz           # Install all but skip oh-my-zsh setup
@@ -179,17 +192,30 @@ stow_package() {
 
 list_packages() {
   echo "Available packages:"
-  for pkg in "${PACKAGES[@]}"; do
+  for pkg in "${PACKAGES_ALL[@]}"; do
     if [[ -d "${DOTFILES_DIR}/${pkg}" ]]; then
-      echo "  - ${pkg}"
+      local marker=""
+      # Mark minimal packages
+      for min_pkg in "${PACKAGES_MINIMAL[@]}"; do
+        if [[ "$pkg" == "$min_pkg" ]]; then
+          marker=" (minimal)"
+          break
+        fi
+      done
+      echo "  - ${pkg}${marker}"
     fi
   done
+  echo
+  echo "Profiles:"
+  echo "  --minimal : ${PACKAGES_MINIMAL[*]}"
+  echo "  --full    : ${PACKAGES_ALL[*]}"
 }
 
 main() {
   local action="install"
   local skip_omz=false
   local selected_packages=()
+  local profile=""
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -201,8 +227,12 @@ main() {
         list_packages
         exit 0
         ;;
-      -a|--all)
-        selected_packages=("${PACKAGES[@]}")
+      -a|--all|--full)
+        profile="full"
+        shift
+        ;;
+      --minimal)
+        profile="minimal"
         shift
         ;;
       -r|--remove)
@@ -230,9 +260,16 @@ main() {
     esac
   done
 
-  # Default to all packages if none specified
+  # Apply profile if set and no specific packages selected
   if [[ ${#selected_packages[@]} -eq 0 ]]; then
-    selected_packages=("${PACKAGES[@]}")
+    case "$profile" in
+      minimal)
+        selected_packages=("${PACKAGES_MINIMAL[@]}")
+        ;;
+      full|"")
+        selected_packages=("${PACKAGES_ALL[@]}")
+        ;;
+    esac
   fi
 
   check_stow
