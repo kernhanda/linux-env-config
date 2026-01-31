@@ -4,11 +4,18 @@
 # curl https://raw.githubusercontent.com/kernhanda/linux-env-config/master/scripts/clone.sh | sh
 
 main() {
-  readonly configDir="${HOME}/.linux-env-config"
+  readonly configDir="${HOME}/.dotfiles"
   readonly repo="https://github.com/kernhanda/linux-env-config"
 
   if [[ ! "$(command -v git)" ]]; then
     echo "This bootstrap script requires git. Aborting."
+    exit 1
+  fi
+
+  if [[ ! "$(command -v stow)" ]]; then
+    echo "This bootstrap script requires stow. Install it first:"
+    echo "  Ubuntu/Debian: sudo apt install stow"
+    echo "  macOS: brew install stow"
     exit 1
   fi
 
@@ -19,7 +26,7 @@ main() {
   fi
 
   cd "${configDir}" || exit
-  . install.sh
+  ./install.sh
 }
 
 main "$@"

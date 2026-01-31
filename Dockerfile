@@ -20,6 +20,7 @@ RUN apt update && apt install -y \
   python3-pip \
   python3-venv \
   ripgrep \
+  stow \
   sudo \
   tmux \
   tree \
@@ -60,7 +61,7 @@ USER ${USER}
 
 # Install the dotfiles.
 WORKDIR /home/${USER}/.dotfiles
-RUN ./install.sh -t build
+RUN ./install.sh
 
 # Symlink fd, since the actual binary name is fdfind.
 RUN mkdir -p ~/.local/bin
