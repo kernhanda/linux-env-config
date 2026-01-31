@@ -173,7 +173,10 @@ install_tpm() {
     print_success "Updated TPM"
   fi
 
-  print_info "Run 'prefix + I' in tmux to install plugins"
+  # Install plugins automatically (runs outside tmux)
+  print_info "Installing tmux plugins..."
+  "${TPM_DIR}/bin/install_plugins"
+  print_success "Installed tmux plugins"
 }
 
 stow_package() {
