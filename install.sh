@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DOTFILES_DIR="${SCRIPT_DIR}/dotfiles"
 
 # Package definitions
-PACKAGES_ALL=(zsh tmux vim git nvim ripgrep editorconfig)
+PACKAGES_ALL=(zsh tmux vim git nvim ripgrep editorconfig claude)
 PACKAGES_MINIMAL=(zsh vim git)
 
 # Default to all packages
