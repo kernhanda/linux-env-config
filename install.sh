@@ -159,6 +159,23 @@ install_fzf() {
   print_success "Installed fzf binary"
 }
 
+install_tpm() {
+  print_info "Setting up TPM (Tmux Plugin Manager)..."
+
+  TPM_DIR="${HOME}/.tmux/plugins/tpm"
+
+  if [[ ! -d "${TPM_DIR}" ]]; then
+    mkdir -p "${HOME}/.tmux/plugins"
+    git clone --quiet --filter=blob:none https://github.com/tmux-plugins/tpm "${TPM_DIR}"
+    print_success "Installed TPM"
+  else
+    git -C "${TPM_DIR}" pull --quiet
+    print_success "Updated TPM"
+  fi
+
+  print_info "Run 'prefix + I' in tmux to install plugins"
+}
+
 stow_package() {
   local package=$1
   local action=$2
@@ -287,6 +304,16 @@ main() {
       if [[ "${pkg}" == "zsh" ]]; then
         install_omz
         install_fzf
+        break
+      fi
+    done
+  fi
+
+  # Install TPM if installing tmux package
+  if [[ "${action}" == "install" ]]; then
+    for pkg in "${selected_packages[@]}"; do
+      if [[ "${pkg}" == "tmux" ]]; then
+        install_tpm
         break
       fi
     done
