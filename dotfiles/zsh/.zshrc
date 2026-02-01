@@ -217,14 +217,15 @@ tmux-dev() {
 
     # Setup windows
     tmux rename-window -t "$session_name:1" "vim"
+    tmux send-keys -t "$session_name:1" "vim" C-m
 
     tmux new-window -t "$session_name:2" -n "term" -c "$current_dir"
 
     tmux new-window -t "$session_name:3" -n "git" -c "$current_dir"
-    tmux send-keys -t "$session_name:3" "git status" C-m
+    tmux send-keys -t "$session_name:3" "lazygit" C-m
 
-    # Split first window
-    tmux split-window -h -t "$session_name:1" -c "$current_dir"
+    # Split second window
+    tmux split-window -h -t "$session_name:2" -c "$current_dir"
 
     # Select first window
     tmux select-window -t "$session_name:1"
