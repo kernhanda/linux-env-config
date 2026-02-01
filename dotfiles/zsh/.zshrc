@@ -190,6 +190,55 @@ if [[ -z "$TMUX" ]]; then
   TERM="xterm-256color"
 fi
 
+# Start a dev session layout in current directory
+tmux-dev() {
+    local current_dir=$(pwd)
+    # Get path relative to home, replace slashes with dashes
+    local default_name=$(echo "${current_dir/#$HOME/}" | sed 's/^\///' | tr '/' '-')
+    # Use basename if we're in home directory
+    [[ -z "$default_name" ]] && default_name="home"
+    local session_name="${1:-$default_name}"
+
+    # Check if session already exists
+    if tmux has-session -t "$session_name" 2>/dev/null; then
+        # Session exists, just switch to it
+        if [[ -n "$TMUX" ]]; then
+            # Already in tmux, switch session
+            tmux switch-client -t "$session_name"
+        else
+            # Not in tmux, attach
+            tmux attach-session -t "$session_name"
+        fi
+        return
+    fi
+
+    # Create session in current directory
+    tmux new-session -d -s "$session_name" -c "$current_dir"
+
+    # Setup windows
+    tmux rename-window -t "$session_name:1" "vim"
+
+    tmux new-window -t "$session_name:2" -n "term" -c "$current_dir"
+
+    tmux new-window -t "$session_name:3" -n "git" -c "$current_dir"
+    tmux send-keys -t "$session_name:3" "git status" C-m
+
+    # Split first window
+    tmux split-window -h -t "$session_name:1" -c "$current_dir"
+
+    # Select first window
+    tmux select-window -t "$session_name:1"
+
+    # Attach or switch depending on context
+    if [[ -n "$TMUX" ]]; then
+        # Already in tmux, switch to new session
+        tmux switch-client -t "$session_name"
+    else
+        # Not in tmux, attach to new session
+        tmux attach-session -t "$session_name"
+    fi
+}
+
 ################################################################################
 # Set up other environment variables, aliases, and options
 ################################################################################
