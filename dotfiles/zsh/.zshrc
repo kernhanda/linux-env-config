@@ -191,7 +191,7 @@ if [[ -z "$TMUX" ]]; then
 fi
 
 # Start a dev session layout in current directory
-tmux-dev() {
+ds() {
     local current_dir=$(pwd)
     # Get path relative to home, replace slashes with dashes
     local default_name=$(echo "${current_dir/#$HOME/}" | sed 's/^\///' | tr '/' '-')
