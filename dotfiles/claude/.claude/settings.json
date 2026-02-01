@@ -160,7 +160,7 @@
 
       "Bash(mojo --version)",
       "Bash(mojo --help:*)",
-      "Bash(mojo doc:*)",
+      "Bash(mojo doc:*)"
     ],
     "deny": [
       "Read(./.env)",
