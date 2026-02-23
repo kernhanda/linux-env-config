@@ -290,7 +290,7 @@ install_claude_code() {
 
   install_node
 
-  npm install -g @anthropic-ai/claude-code@latest
+  sudo npm install -g @anthropic-ai/claude-code@latest
   if command -v claude &>/dev/null; then
     print_success "Installed Claude Code $(claude --version 2>/dev/null || echo '')"
   else
