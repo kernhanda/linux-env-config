@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DOTFILES_DIR="${SCRIPT_DIR}/dotfiles"
 
 # Package definitions
-PACKAGES_ALL=(zsh tmux vim git nvim ripgrep editorconfig claude)
+PACKAGES_ALL=(zsh tmux vim git nvim ripgrep editorconfig claude coder)
 PACKAGES_MINIMAL=(zsh vim git)
 
 # Default to all packages
@@ -301,6 +301,18 @@ install_claude_code() {
   fi
 }
 
+install_coder() {
+  print_info "Installing Coder CLI..."
+
+  curl -fsSL https://coder.com/install.sh | sh
+  if command -v coder &>/dev/null; then
+    print_success "Installed Coder CLI $(coder version 2>/dev/null | head -1 || echo '')"
+  else
+    print_error "Failed to install Coder CLI"
+    return 1
+  fi
+}
+
 install_tpm() {
   print_info "Setting up TPM (Tmux Plugin Manager)..."
 
@@ -326,8 +338,8 @@ stow_package() {
   local action=$2
 
   if [[ ! -d "${DOTFILES_DIR}/${package}" ]]; then
-    print_error "Package '${package}' not found"
-    return 1
+    # Package has no dotfiles to stow (tool-only install)
+    return 0
   fi
 
   # Ensure ~/.config exists for packages that need it
@@ -490,6 +502,16 @@ main() {
     for pkg in "${selected_packages[@]}"; do
       if [[ "${pkg}" == "claude" ]]; then
         install_claude_code
+        break
+      fi
+    done
+  fi
+
+  # Install Coder CLI if installing coder package
+  if [[ "${action}" == "install" ]]; then
+    for pkg in "${selected_packages[@]}"; do
+      if [[ "${pkg}" == "coder" ]]; then
+        install_coder
         break
       fi
     done
