@@ -293,6 +293,8 @@ install_claude_code() {
   sudo npm install -g @anthropic-ai/claude-code@latest
   if command -v claude &>/dev/null; then
     print_success "Installed Claude Code $(claude --version 2>/dev/null || echo '')"
+    claude install
+    print_success "Completed Claude Code setup"
   else
     print_error "Failed to install Claude Code"
     return 1
