@@ -237,21 +237,55 @@ install_nvim() {
   fi
 }
 
+install_node() {
+  local need_install=false
+  local NODE_MAJOR_REQUIRED=22
+
+  if ! command -v node &>/dev/null; then
+    need_install=true
+  else
+    local node_major
+    node_major=$(node -v | grep -oP 'v\K[0-9]+')
+    if (( node_major < 18 )); then
+      print_info "Node.js v${node_major} is too old (need >= 18), upgrading..."
+      need_install=true
+    else
+      print_info "Node.js already installed: $(node -v)"
+      return 0
+    fi
+  fi
+
+  if [[ "${need_install}" == true ]]; then
+    print_info "Installing Node.js ${NODE_MAJOR_REQUIRED}.x LTS..."
+
+    if command -v apt &>/dev/null; then
+      # Use NodeSource for a current version on Debian/Ubuntu
+      curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR_REQUIRED}.x" | sudo -E bash -
+      sudo apt install -y nodejs
+    elif command -v brew &>/dev/null; then
+      brew install node
+    elif command -v pacman &>/dev/null; then
+      sudo pacman -S --noconfirm nodejs npm
+    elif command -v dnf &>/dev/null; then
+      sudo dnf install -y nodejs npm
+    else
+      print_error "Could not detect package manager. Install Node.js >= 18 manually."
+      return 1
+    fi
+
+    if command -v node &>/dev/null; then
+      print_success "Installed Node.js $(node -v)"
+    else
+      print_error "Failed to install Node.js"
+      return 1
+    fi
+  fi
+}
+
 install_claude_code() {
   print_info "Installing Claude Code..."
 
-  # Claude Code requires Node.js >= 18
-  if ! command -v node &>/dev/null; then
-    print_error "Node.js is required but not installed. Install Node.js >= 18 first."
-    return 1
-  fi
-
-  local node_major
-  node_major=$(node -v | grep -oP 'v\K[0-9]+')
-  if (( node_major < 18 )); then
-    print_error "Node.js >= 18 required (found v${node_major}). Please upgrade."
-    return 1
-  fi
+  install_node
 
   npm install -g @anthropic-ai/claude-code@latest
   if command -v claude &>/dev/null; then
