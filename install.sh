@@ -91,6 +91,56 @@ check_stow() {
   fi
 }
 
+pkg_install() {
+  local pkg=$1
+  if command -v apt &>/dev/null; then
+    sudo apt update -qq && sudo apt install -y "$pkg"
+  elif command -v brew &>/dev/null; then
+    brew install "$pkg"
+  elif command -v pacman &>/dev/null; then
+    sudo pacman -S --noconfirm "$pkg"
+  elif command -v dnf &>/dev/null; then
+    sudo dnf install -y "$pkg"
+  else
+    print_error "Could not detect package manager. Install ${pkg} manually."
+    return 1
+  fi
+}
+
+install_tmux() {
+  if command -v tmux &>/dev/null; then
+    print_info "tmux already installed: $(tmux -V)"
+    return 0
+  fi
+
+  print_info "Installing tmux..."
+  pkg_install tmux
+
+  if command -v tmux &>/dev/null; then
+    print_success "Installed $(tmux -V)"
+  else
+    print_error "Failed to install tmux"
+    return 1
+  fi
+}
+
+install_ripgrep() {
+  if command -v rg &>/dev/null; then
+    print_info "ripgrep already installed: $(rg --version | head -1)"
+    return 0
+  fi
+
+  print_info "Installing ripgrep..."
+  pkg_install ripgrep
+
+  if command -v rg &>/dev/null; then
+    print_success "Installed $(rg --version | head -1)"
+  else
+    print_error "Failed to install ripgrep"
+    return 1
+  fi
+}
+
 install_omz() {
   print_info "Setting up oh-my-zsh..."
 
@@ -157,6 +207,59 @@ install_fzf() {
   # Install fzf binary and shell integrations (non-interactively)
   "${FZF_DIR}/install" --bin --no-bash --no-zsh --no-fish >/dev/null 2>&1
   print_success "Installed fzf binary"
+}
+
+install_nvim() {
+  print_info "Installing latest Neovim..."
+
+  if command -v nvim &>/dev/null; then
+    local current_version
+    current_version=$(nvim --version | head -1 | grep -oP 'v\K[0-9.]+')
+    print_info "Current Neovim version: ${current_version}"
+  fi
+
+  local latest_url="https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
+  local tmp_dir
+  tmp_dir=$(mktemp -d)
+
+  if curl -fsSL "${latest_url}" -o "${tmp_dir}/nvim.tar.gz"; then
+    tar -xzf "${tmp_dir}/nvim.tar.gz" -C "${tmp_dir}"
+    sudo rm -rf /opt/nvim
+    sudo mv "${tmp_dir}/nvim-linux-x86_64" /opt/nvim
+    # Create symlink if not already on PATH via /opt/nvim/bin
+    sudo ln -sf /opt/nvim/bin/nvim /usr/local/bin/nvim
+    rm -rf "${tmp_dir}"
+    print_success "Installed Neovim $(nvim --version | head -1)"
+  else
+    rm -rf "${tmp_dir}"
+    print_error "Failed to download Neovim"
+    return 1
+  fi
+}
+
+install_claude_code() {
+  print_info "Installing Claude Code..."
+
+  # Claude Code requires Node.js >= 18
+  if ! command -v node &>/dev/null; then
+    print_error "Node.js is required but not installed. Install Node.js >= 18 first."
+    return 1
+  fi
+
+  local node_major
+  node_major=$(node -v | grep -oP 'v\K[0-9]+')
+  if (( node_major < 18 )); then
+    print_error "Node.js >= 18 required (found v${node_major}). Please upgrade."
+    return 1
+  fi
+
+  npm install -g @anthropic-ai/claude-code@latest
+  if command -v claude &>/dev/null; then
+    print_success "Installed Claude Code $(claude --version 2>/dev/null || echo '')"
+  else
+    print_error "Failed to install Claude Code"
+    return 1
+  fi
 }
 
 install_tpm() {
@@ -312,11 +415,42 @@ main() {
     done
   fi
 
-  # Install TPM if installing tmux package
+  # Install tmux and TPM if installing tmux package
   if [[ "${action}" == "install" ]]; then
     for pkg in "${selected_packages[@]}"; do
       if [[ "${pkg}" == "tmux" ]]; then
+        install_tmux
         install_tpm
+        break
+      fi
+    done
+  fi
+
+  # Install ripgrep if installing ripgrep package
+  if [[ "${action}" == "install" ]]; then
+    for pkg in "${selected_packages[@]}"; do
+      if [[ "${pkg}" == "ripgrep" ]]; then
+        install_ripgrep
+        break
+      fi
+    done
+  fi
+
+  # Install latest Neovim if installing nvim package
+  if [[ "${action}" == "install" ]]; then
+    for pkg in "${selected_packages[@]}"; do
+      if [[ "${pkg}" == "nvim" ]]; then
+        install_nvim
+        break
+      fi
+    done
+  fi
+
+  # Install Claude Code if installing claude package
+  if [[ "${action}" == "install" ]]; then
+    for pkg in "${selected_packages[@]}"; do
+      if [[ "${pkg}" == "claude" ]]; then
+        install_claude_code
         break
       fi
     done
