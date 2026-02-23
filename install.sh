@@ -259,6 +259,9 @@ install_node() {
     print_info "Installing Node.js ${NODE_MAJOR_REQUIRED}.x LTS..."
 
     if command -v apt &>/dev/null; then
+      # Remove old distro-packaged Node.js to avoid conflicts with NodeSource
+      sudo apt remove -y libnode-dev libnode72 nodejs-doc 2>/dev/null || true
+      sudo apt autoremove -y 2>/dev/null || true
       # Use NodeSource for a current version on Debian/Ubuntu
       curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR_REQUIRED}.x" | sudo -E bash -
       sudo apt install -y nodejs
