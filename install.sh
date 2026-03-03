@@ -191,6 +191,108 @@ install_omz() {
   done
 }
 
+install_fd() {
+  if command -v fd &>/dev/null; then
+    print_info "fd already installed: $(fd --version)"
+    return 0
+  fi
+
+  print_info "Installing fd..."
+
+  local version
+  version=$(curl -s https://api.github.com/repos/sharkdp/fd/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
+  local url="https://github.com/sharkdp/fd/releases/download/v${version}/fd-v${version}-x86_64-unknown-linux-gnu.tar.gz"
+  local tmp_dir
+  tmp_dir=$(mktemp -d)
+
+  if curl -fsSL "${url}" -o "${tmp_dir}/fd.tar.gz"; then
+    tar -xzf "${tmp_dir}/fd.tar.gz" -C "${tmp_dir}" --strip-components=1
+    sudo mv "${tmp_dir}/fd" /usr/local/bin/fd
+    rm -rf "${tmp_dir}"
+    print_success "Installed fd $(fd --version)"
+  else
+    rm -rf "${tmp_dir}"
+    print_error "Failed to download fd"
+    return 1
+  fi
+}
+
+install_bat() {
+  if command -v bat &>/dev/null || command -v batcat &>/dev/null; then
+    print_info "bat already installed"
+    return 0
+  fi
+
+  print_info "Installing bat..."
+
+  local version
+  version=$(curl -s https://api.github.com/repos/sharkdp/bat/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
+  local url="https://github.com/sharkdp/bat/releases/download/v${version}/bat-v${version}-x86_64-unknown-linux-gnu.tar.gz"
+  local tmp_dir
+  tmp_dir=$(mktemp -d)
+
+  if curl -fsSL "${url}" -o "${tmp_dir}/bat.tar.gz"; then
+    tar -xzf "${tmp_dir}/bat.tar.gz" -C "${tmp_dir}" --strip-components=1
+    sudo mv "${tmp_dir}/bat" /usr/local/bin/bat
+    rm -rf "${tmp_dir}"
+    print_success "Installed bat $(bat --version)"
+  else
+    rm -rf "${tmp_dir}"
+    print_error "Failed to download bat"
+    return 1
+  fi
+}
+
+install_lazygit() {
+  if command -v lazygit &>/dev/null; then
+    print_info "lazygit already installed: $(lazygit --version | head -1)"
+    return 0
+  fi
+
+  print_info "Installing lazygit..."
+
+  local version
+  version=$(curl -s https://api.github.com/repos/jesseduffield/lazygit/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
+  local url="https://github.com/jesseduffield/lazygit/releases/download/v${version}/lazygit_${version}_Linux_x86_64.tar.gz"
+  local tmp_dir
+  tmp_dir=$(mktemp -d)
+
+  if curl -fsSL "${url}" -o "${tmp_dir}/lazygit.tar.gz"; then
+    tar -xzf "${tmp_dir}/lazygit.tar.gz" -C "${tmp_dir}"
+    sudo mv "${tmp_dir}/lazygit" /usr/local/bin/lazygit
+    rm -rf "${tmp_dir}"
+    print_success "Installed lazygit $(lazygit --version | head -1)"
+  else
+    rm -rf "${tmp_dir}"
+    print_error "Failed to download lazygit"
+    return 1
+  fi
+}
+
+install_eza() {
+  if command -v eza &>/dev/null; then
+    print_info "eza already installed: $(eza --version | head -1)"
+    return 0
+  fi
+
+  print_info "Installing eza..."
+
+  local latest_url="https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz"
+  local tmp_dir
+  tmp_dir=$(mktemp -d)
+
+  if curl -fsSL "${latest_url}" -o "${tmp_dir}/eza.tar.gz"; then
+    tar -xzf "${tmp_dir}/eza.tar.gz" -C "${tmp_dir}"
+    sudo mv "${tmp_dir}/eza" /usr/local/bin/eza
+    rm -rf "${tmp_dir}"
+    print_success "Installed eza $(eza --version | head -1)"
+  else
+    rm -rf "${tmp_dir}"
+    print_error "Failed to download eza"
+    return 1
+  fi
+}
+
 install_fzf() {
   print_info "Setting up fzf..."
 
@@ -461,6 +563,19 @@ main() {
       if [[ "${pkg}" == "zsh" ]]; then
         install_omz
         install_fzf
+        break
+      fi
+    done
+  fi
+
+  # Install zsh companion tools (fd, bat, eza, lazygit)
+  if [[ "${action}" == "install" ]]; then
+    for pkg in "${selected_packages[@]}"; do
+      if [[ "${pkg}" == "zsh" ]]; then
+        install_fd
+        install_bat
+        install_eza
+        install_lazygit
         break
       fi
     done
