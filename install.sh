@@ -341,7 +341,6 @@ install_nvim() {
 
 install_node() {
   local need_install=false
-  local NODE_MAJOR_REQUIRED=22
 
   if ! command -v node &>/dev/null; then
     need_install=true
@@ -352,20 +351,20 @@ install_node() {
       print_info "Node.js v${node_major} is too old (need >= 18), upgrading..."
       need_install=true
     else
-      print_info "Node.js already installed: $(node -v)"
+      print_info "Node.js already installed: $(node -v), npx: $(npx --version)"
       return 0
     fi
   fi
 
   if [[ "${need_install}" == true ]]; then
-    print_info "Installing Node.js ${NODE_MAJOR_REQUIRED}.x LTS..."
+    print_info "Installing Node.js LTS..."
 
     if command -v apt &>/dev/null; then
       # Remove old distro-packaged Node.js to avoid conflicts with NodeSource
       sudo apt remove -y libnode-dev libnode72 nodejs-doc 2>/dev/null || true
       sudo apt autoremove -y 2>/dev/null || true
-      # Use NodeSource for a current version on Debian/Ubuntu
-      curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR_REQUIRED}.x" | sudo -E bash -
+      # Use NodeSource LTS channel
+      curl -fsSL "https://deb.nodesource.com/setup_lts.x" | sudo -E bash -
       sudo apt install -y nodejs
     elif command -v brew &>/dev/null; then
       brew install node
@@ -374,12 +373,12 @@ install_node() {
     elif command -v dnf &>/dev/null; then
       sudo dnf install -y nodejs npm
     else
-      print_error "Could not detect package manager. Install Node.js >= 18 manually."
+      print_error "Could not detect package manager. Install Node.js LTS manually."
       return 1
     fi
 
-    if command -v node &>/dev/null; then
-      print_success "Installed Node.js $(node -v)"
+    if command -v node &>/dev/null && command -v npx &>/dev/null; then
+      print_success "Installed Node.js $(node -v) with npx $(npx --version)"
     else
       print_error "Failed to install Node.js"
       return 1
