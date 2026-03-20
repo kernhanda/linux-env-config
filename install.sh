@@ -269,6 +269,32 @@ install_lazygit() {
   fi
 }
 
+install_yq() {
+  if command -v yq &>/dev/null; then
+    print_info "yq already installed: $(yq --version)"
+    return 0
+  fi
+
+  print_info "Installing yq..."
+
+  local version
+  version=$(curl -s https://api.github.com/repos/mikefarah/yq/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
+  local url="https://github.com/mikefarah/yq/releases/download/v${version}/yq_linux_amd64"
+  local tmp_dir
+  tmp_dir=$(mktemp -d)
+
+  if curl -fsSL "${url}" -o "${tmp_dir}/yq"; then
+    chmod +x "${tmp_dir}/yq"
+    sudo mv "${tmp_dir}/yq" /usr/local/bin/yq
+    rm -rf "${tmp_dir}"
+    print_success "Installed yq $(yq --version)"
+  else
+    rm -rf "${tmp_dir}"
+    print_error "Failed to download yq"
+    return 1
+  fi
+}
+
 install_eza() {
   if command -v eza &>/dev/null; then
     print_info "eza already installed: $(eza --version | head -1)"
@@ -575,6 +601,7 @@ main() {
         install_bat
         install_eza
         install_lazygit
+        install_yq
         break
       fi
     done
