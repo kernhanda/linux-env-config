@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DOTFILES_DIR="${SCRIPT_DIR}/dotfiles"
 
 # Package definitions
-PACKAGES_ALL=(zsh tmux vim git nvim ripgrep editorconfig claude coder)
+PACKAGES_ALL=(zsh tmux vim git nvim ripgrep editorconfig claude coder go)
 PACKAGES_MINIMAL=(zsh vim git)
 
 # Default to all packages
@@ -291,6 +291,39 @@ install_yq() {
   else
     rm -rf "${tmp_dir}"
     print_error "Failed to download yq"
+    return 1
+  fi
+}
+
+install_go() {
+  if command -v go &>/dev/null; then
+    print_info "Go already installed: $(go version)"
+    return 0
+  fi
+
+  print_info "Installing Go..."
+
+  local version
+  version=$(curl -s https://go.dev/dl/?mode=json | grep -oP '"version":\s*"go\K[0-9.]+' | head -1)
+  if [[ -z "${version}" ]]; then
+    # Fallback if API parsing fails
+    version="1.24.1"
+  fi
+  local url="https://go.dev/dl/go${version}.linux-amd64.tar.gz"
+  local tmp_dir
+  tmp_dir=$(mktemp -d)
+
+  if curl -fsSL "${url}" -o "${tmp_dir}/go.tar.gz"; then
+    sudo rm -rf /usr/local/go
+    sudo tar -C /usr/local -xzf "${tmp_dir}/go.tar.gz"
+    rm -rf "${tmp_dir}"
+    # Symlink into a PATH location so it's available immediately
+    sudo ln -sf /usr/local/go/bin/go /usr/local/bin/go
+    sudo ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt
+    print_success "Installed Go $(/usr/local/go/bin/go version)"
+  else
+    rm -rf "${tmp_dir}"
+    print_error "Failed to download Go"
     return 1
   fi
 }
@@ -653,6 +686,16 @@ main() {
     for pkg in "${selected_packages[@]}"; do
       if [[ "${pkg}" == "coder" ]]; then
         install_coder
+        break
+      fi
+    done
+  fi
+
+  # Install Go if installing go package
+  if [[ "${action}" == "install" ]]; then
+    for pkg in "${selected_packages[@]}"; do
+      if [[ "${pkg}" == "go" ]]; then
+        install_go
         break
       fi
     done
