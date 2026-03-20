@@ -107,6 +107,23 @@ pkg_install() {
   fi
 }
 
+install_make() {
+  if command -v make &>/dev/null; then
+    print_info "make already installed: $(make --version | head -1)"
+    return 0
+  fi
+
+  print_info "Installing make..."
+  pkg_install make
+
+  if command -v make &>/dev/null; then
+    print_success "Installed $(make --version | head -1)"
+  else
+    print_error "Failed to install make"
+    return 1
+  fi
+}
+
 install_tmux() {
   if command -v tmux &>/dev/null; then
     print_info "tmux already installed: $(tmux -V)"
@@ -607,6 +624,10 @@ main() {
   fi
 
   check_stow
+
+  if [[ "${action}" == "install" ]]; then
+    install_make
+  fi
 
   echo "Dotfiles ${action}ation"
   echo "========================"
