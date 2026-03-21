@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DOTFILES_DIR="${SCRIPT_DIR}/dotfiles"
 
 # Package definitions
-PACKAGES_ALL=(zsh tmux vim git nvim ripgrep editorconfig claude coder go)
+PACKAGES_ALL=(zsh tmux vim git gh nvim ripgrep editorconfig claude coder go)
 PACKAGES_MINIMAL=(zsh vim git)
 
 # Default to all packages
@@ -282,6 +282,41 @@ install_lazygit() {
   else
     rm -rf "${tmp_dir}"
     print_error "Failed to download lazygit"
+    return 1
+  fi
+}
+
+install_gh() {
+  if command -v gh &>/dev/null; then
+    print_info "gh already installed: $(gh --version | head -1)"
+    return 0
+  fi
+
+  print_info "Installing GitHub CLI (gh)..."
+
+  if command -v brew &>/dev/null; then
+    brew install gh
+  elif command -v apt &>/dev/null; then
+    sudo mkdir -p -m 755 /etc/apt/keyrings
+    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+      | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
+    sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
+      | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+    sudo apt update && sudo apt install -y gh
+  elif command -v pacman &>/dev/null; then
+    sudo pacman -S --noconfirm github-cli
+  elif command -v dnf &>/dev/null; then
+    sudo dnf install -y gh
+  else
+    print_error "Could not detect package manager. Install gh manually: https://cli.github.com"
+    return 1
+  fi
+
+  if command -v gh &>/dev/null; then
+    print_success "Installed $(gh --version | head -1)"
+  else
+    print_error "Failed to install gh"
     return 1
   fi
 }
@@ -707,6 +742,16 @@ main() {
     for pkg in "${selected_packages[@]}"; do
       if [[ "${pkg}" == "coder" ]]; then
         install_coder
+        break
+      fi
+    done
+  fi
+
+  # Install GitHub CLI if installing gh package
+  if [[ "${action}" == "install" ]]; then
+    for pkg in "${selected_packages[@]}"; do
+      if [[ "${pkg}" == "gh" ]]; then
+        install_gh
         break
       fi
     done
