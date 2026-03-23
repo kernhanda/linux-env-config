@@ -545,8 +545,11 @@ install_node() {
     if (( node_major < 18 )); then
       print_info "Node.js v${node_major} is too old (need >= 18), upgrading..."
       need_install=true
+    elif ! npm --version &>/dev/null; then
+      print_info "Node.js $(node -v) found but npm is broken, reinstalling..."
+      need_install=true
     else
-      print_info "Node.js already installed: $(node -v), npx: $(npx --version)"
+      print_info "Node.js already installed: $(node -v), npm: $(npm --version)"
       return 0
     fi
   fi
@@ -559,11 +562,15 @@ install_node() {
     log_verbose "Detected package manager: ${mgr:-none}"
 
     if [[ "${mgr}" == "apt" ]]; then
-      # Remove old distro-packaged Node.js to avoid conflicts with NodeSource
-      log_verbose "Removing old distro Node.js packages"
-      sudo apt remove -y libnode-dev libnode72 nodejs-doc 2>/dev/null || true
+      # Purge all existing Node.js / npm packages to avoid version conflicts
+      log_verbose "Purging existing Node.js and npm packages"
+      sudo apt purge -y nodejs npm libnode-dev libnode72 nodejs-doc 2>/dev/null || true
       sudo apt autoremove -y 2>/dev/null || true
-      # Use NodeSource LTS channel
+      # Remove stale distro npm that can conflict with NodeSource
+      if [[ -d /usr/share/nodejs/npm ]]; then
+        log_verbose "Removing stale /usr/share/nodejs/npm"
+        sudo rm -rf /usr/share/nodejs/npm
+      fi
       log_verbose "Adding NodeSource LTS repository"
       curl -fsSL "https://deb.nodesource.com/setup_lts.x" | sudo -E bash -
       sudo apt install -y nodejs
@@ -578,8 +585,8 @@ install_node() {
       return 1
     fi
 
-    if command -v node &>/dev/null && command -v npx &>/dev/null; then
-      print_success "Installed Node.js $(node -v) with npx $(npx --version)"
+    if command -v node &>/dev/null && npm --version &>/dev/null; then
+      print_success "Installed Node.js $(node -v) with npm $(npm --version)"
     else
       print_error "Failed to install Node.js"
       return 1
