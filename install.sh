@@ -669,6 +669,15 @@ stow_package() {
       print_success "Removed ${package}" || \
       print_info "Package ${package} was not stowed"
   else
+    # Remove foreign symlinks that would conflict with stow (files and directories)
+    while IFS= read -r rel_path; do
+      local target="${HOME}/${rel_path}"
+      if [[ -L "${target}" ]] && [[ "$(readlink "${target}")" != *"${DOTFILES_DIR}/${package}/"* ]]; then
+        rm "${target}"
+        print_info "Removed conflicting symlink: ${rel_path}"
+      fi
+    done < <(cd "${DOTFILES_DIR}/${package}" && find . \( -type f -o -type d \) ! -name . -printf '%P\n')
+
     # Use --adopt to handle existing files, then restore from git
     log_verbose "Running: stow -d ${DOTFILES_DIR} -t ${HOME} --restow --adopt ${package}"
     if stow -d "${DOTFILES_DIR}" -t "${HOME}" --restow --adopt "${package}" 2>/dev/null; then
