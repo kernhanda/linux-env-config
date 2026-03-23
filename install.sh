@@ -15,6 +15,9 @@ PACKAGES_MINIMAL=(zsh vim git)
 # Default to all packages
 PACKAGES=("${PACKAGES_ALL[@]}")
 
+# Verbose logging (off by default)
+VERBOSE=false
+
 usage() {
   cat <<EOF
 Usage: $0 [OPTIONS] [PACKAGES...]
@@ -27,6 +30,7 @@ OPTIONS:
   -a, --all       Install all packages (default)
   -r, --remove    Remove (unstow) packages
   -n, --no-omz    Skip oh-my-zsh installation
+  -v, --verbose   Show detailed logging output
   --minimal       Install minimal profile (zsh, vim, git)
   --full          Install full profile (all packages, default)
   --shellcheck    Lint all shell scripts
@@ -61,16 +65,44 @@ print_info() {
   printf "\e[0;34m  [i] %s\e[0m\n" "$1"
 }
 
+log_verbose() {
+  if [[ "${VERBOSE}" == true ]]; then
+    printf "\e[0;90m      %s\e[0m\n" "$1"
+  fi
+}
+
+detect_pkg_manager() {
+  if command -v apt &>/dev/null; then
+    echo "apt"
+  elif command -v brew &>/dev/null; then
+    echo "brew"
+  elif command -v pacman &>/dev/null; then
+    echo "pacman"
+  elif command -v dnf &>/dev/null; then
+    echo "dnf"
+  else
+    echo ""
+  fi
+}
+
 install_stow() {
   print_info "Installing GNU Stow..."
 
-  if command -v apt &>/dev/null; then
+  local mgr
+  mgr=$(detect_pkg_manager)
+  log_verbose "Detected package manager: ${mgr:-none}"
+
+  if [[ "${mgr}" == "apt" ]]; then
+    log_verbose "Running: sudo apt update && sudo apt install -y stow"
     sudo apt update && sudo apt install -y stow
-  elif command -v brew &>/dev/null; then
+  elif [[ "${mgr}" == "brew" ]]; then
+    log_verbose "Running: brew install stow"
     brew install stow
-  elif command -v pacman &>/dev/null; then
+  elif [[ "${mgr}" == "pacman" ]]; then
+    log_verbose "Running: sudo pacman -S --noconfirm stow"
     sudo pacman -S --noconfirm stow
-  elif command -v dnf &>/dev/null; then
+  elif [[ "${mgr}" == "dnf" ]]; then
+    log_verbose "Running: sudo dnf install -y stow"
     sudo dnf install -y stow
   else
     print_error "Could not detect package manager. Install stow manually."
@@ -78,6 +110,7 @@ install_stow() {
   fi
 
   if command -v stow &>/dev/null; then
+    log_verbose "stow binary: $(command -v stow)"
     print_success "Installed stow"
   else
     print_error "Failed to install stow"
@@ -87,19 +120,26 @@ install_stow() {
 
 check_stow() {
   if ! command -v stow &>/dev/null; then
+    log_verbose "stow not found in PATH, installing..."
     install_stow
+  else
+    log_verbose "stow already available: $(command -v stow)"
   fi
 }
 
 pkg_install() {
   local pkg=$1
-  if command -v apt &>/dev/null; then
+  local mgr
+  mgr=$(detect_pkg_manager)
+  log_verbose "Installing system package '${pkg}' via ${mgr:-unknown}"
+
+  if [[ "${mgr}" == "apt" ]]; then
     sudo apt update -qq && sudo apt install -y "$pkg"
-  elif command -v brew &>/dev/null; then
+  elif [[ "${mgr}" == "brew" ]]; then
     brew install "$pkg"
-  elif command -v pacman &>/dev/null; then
+  elif [[ "${mgr}" == "pacman" ]]; then
     sudo pacman -S --noconfirm "$pkg"
-  elif command -v dnf &>/dev/null; then
+  elif [[ "${mgr}" == "dnf" ]]; then
     sudo dnf install -y "$pkg"
   else
     print_error "Could not detect package manager. Install ${pkg} manually."
@@ -165,10 +205,14 @@ install_omz() {
   ZSH_CUSTOM="${ZSH_CUSTOM:-${ZSH}/custom}"
 
   # Clone or update Oh My Zsh.
+  log_verbose "ZSH dir: ${ZSH}"
+  log_verbose "ZSH_CUSTOM dir: ${ZSH_CUSTOM}"
   if [[ ! -d "${ZSH}" ]]; then
+    log_verbose "Cloning oh-my-zsh into ${ZSH}"
     git clone --quiet --filter=blob:none https://github.com/robbyrussell/oh-my-zsh "${ZSH}"
     print_success "Installed oh-my-zsh"
   else
+    log_verbose "Updating existing oh-my-zsh at ${ZSH}"
     git -C "${ZSH}" pull --quiet
     print_success "Updated oh-my-zsh"
   fi
@@ -180,10 +224,13 @@ install_omz() {
   if command -v jq &>/dev/null; then
     THEME_VERSION_TAG=$(curl -s https://api.github.com/repos/romkatv/powerlevel10k/releases/latest | jq -r .tag_name)
   fi
+  log_verbose "Powerlevel10k version: ${THEME_VERSION_TAG}, path: ${THEME_PATH}"
   if [[ ! -d "${THEME_PATH}" ]]; then
+    log_verbose "Cloning powerlevel10k from ${THEME_REPO_URL}"
     git clone --quiet --filter=blob:none --branch "${THEME_VERSION_TAG}" "${THEME_REPO_URL}" "${THEME_PATH}"
     print_success "Installed powerlevel10k"
   else
+    log_verbose "Updating existing powerlevel10k at ${THEME_PATH}"
     git -C "${THEME_PATH}" fetch --quiet
     git -C "${THEME_PATH}" checkout "${THEME_VERSION_TAG}" --quiet
     print_success "Updated powerlevel10k"
@@ -198,10 +245,13 @@ install_omz() {
   for REPO_URL in "${CUSTOM_PLUGIN_REPOS[@]}"; do
     PLUGIN_NAME="${REPO_URL##*/}"
     PLUGIN_PATH="${ZSH_CUSTOM}/plugins/${PLUGIN_NAME}"
+    log_verbose "Plugin ${PLUGIN_NAME}: repo=${REPO_URL} path=${PLUGIN_PATH}"
     if [[ ! -d "${PLUGIN_PATH}" ]]; then
+      log_verbose "Cloning ${PLUGIN_NAME} into ${PLUGIN_PATH}"
       git clone --quiet --filter=blob:none "${REPO_URL}" "${PLUGIN_PATH}"
       print_success "Installed plugin: ${PLUGIN_NAME}"
     else
+      log_verbose "Pulling latest for ${PLUGIN_NAME}"
       git -C "${PLUGIN_PATH}" pull --quiet
       print_success "Updated plugin: ${PLUGIN_NAME}"
     fi
@@ -221,6 +271,9 @@ install_fd() {
   local url="https://github.com/sharkdp/fd/releases/download/v${version}/fd-v${version}-x86_64-unknown-linux-gnu.tar.gz"
   local tmp_dir
   tmp_dir=$(mktemp -d)
+  log_verbose "fd version: ${version}"
+  log_verbose "Download URL: ${url}"
+  log_verbose "Temp dir: ${tmp_dir}"
 
   if curl -fsSL "${url}" -o "${tmp_dir}/fd.tar.gz"; then
     tar -xzf "${tmp_dir}/fd.tar.gz" -C "${tmp_dir}" --strip-components=1
@@ -247,6 +300,9 @@ install_bat() {
   local url="https://github.com/sharkdp/bat/releases/download/v${version}/bat-v${version}-x86_64-unknown-linux-gnu.tar.gz"
   local tmp_dir
   tmp_dir=$(mktemp -d)
+  log_verbose "bat version: ${version}"
+  log_verbose "Download URL: ${url}"
+  log_verbose "Temp dir: ${tmp_dir}"
 
   if curl -fsSL "${url}" -o "${tmp_dir}/bat.tar.gz"; then
     tar -xzf "${tmp_dir}/bat.tar.gz" -C "${tmp_dir}" --strip-components=1
@@ -273,6 +329,9 @@ install_lazygit() {
   local url="https://github.com/jesseduffield/lazygit/releases/download/v${version}/lazygit_${version}_Linux_x86_64.tar.gz"
   local tmp_dir
   tmp_dir=$(mktemp -d)
+  log_verbose "lazygit version: ${version}"
+  log_verbose "Download URL: ${url}"
+  log_verbose "Temp dir: ${tmp_dir}"
 
   if curl -fsSL "${url}" -o "${tmp_dir}/lazygit.tar.gz"; then
     tar -xzf "${tmp_dir}/lazygit.tar.gz" -C "${tmp_dir}"
@@ -294,9 +353,13 @@ install_gh() {
 
   print_info "Installing GitHub CLI (gh)..."
 
-  if command -v brew &>/dev/null; then
+  local mgr
+  mgr=$(detect_pkg_manager)
+  log_verbose "Detected package manager: ${mgr:-none}"
+
+  if [[ "${mgr}" == "brew" ]]; then
     brew install gh
-  elif command -v apt &>/dev/null; then
+  elif [[ "${mgr}" == "apt" ]]; then
     sudo mkdir -p -m 755 /etc/apt/keyrings
     curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
       | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
@@ -304,9 +367,9 @@ install_gh() {
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
       | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
     sudo apt update && sudo apt install -y gh
-  elif command -v pacman &>/dev/null; then
+  elif [[ "${mgr}" == "pacman" ]]; then
     sudo pacman -S --noconfirm github-cli
-  elif command -v dnf &>/dev/null; then
+  elif [[ "${mgr}" == "dnf" ]]; then
     sudo dnf install -y gh
   else
     print_error "Could not detect package manager. Install gh manually: https://cli.github.com"
@@ -334,6 +397,9 @@ install_yq() {
   local url="https://github.com/mikefarah/yq/releases/download/v${version}/yq_linux_amd64"
   local tmp_dir
   tmp_dir=$(mktemp -d)
+  log_verbose "yq version: ${version}"
+  log_verbose "Download URL: ${url}"
+  log_verbose "Temp dir: ${tmp_dir}"
 
   if curl -fsSL "${url}" -o "${tmp_dir}/yq"; then
     chmod +x "${tmp_dir}/yq"
@@ -360,16 +426,23 @@ install_go() {
   if [[ -z "${version}" ]]; then
     # Fallback if API parsing fails
     version="1.24.1"
+    log_verbose "API parsing failed, using fallback version: ${version}"
   fi
   local url="https://go.dev/dl/go${version}.linux-amd64.tar.gz"
   local tmp_dir
   tmp_dir=$(mktemp -d)
+  log_verbose "Go version: ${version}"
+  log_verbose "Download URL: ${url}"
+  log_verbose "Temp dir: ${tmp_dir}"
 
   if curl -fsSL "${url}" -o "${tmp_dir}/go.tar.gz"; then
+    log_verbose "Removing existing /usr/local/go"
     sudo rm -rf /usr/local/go
+    log_verbose "Extracting Go to /usr/local"
     sudo tar -C /usr/local -xzf "${tmp_dir}/go.tar.gz"
     rm -rf "${tmp_dir}"
     # Symlink into a PATH location so it's available immediately
+    log_verbose "Creating symlinks in /usr/local/bin"
     sudo ln -sf /usr/local/go/bin/go /usr/local/bin/go
     sudo ln -sf /usr/local/go/bin/gofmt /usr/local/bin/gofmt
     print_success "Installed Go $(/usr/local/go/bin/go version)"
@@ -391,6 +464,8 @@ install_eza() {
   local latest_url="https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz"
   local tmp_dir
   tmp_dir=$(mktemp -d)
+  log_verbose "Download URL: ${latest_url}"
+  log_verbose "Temp dir: ${tmp_dir}"
 
   if curl -fsSL "${latest_url}" -o "${tmp_dir}/eza.tar.gz"; then
     tar -xzf "${tmp_dir}/eza.tar.gz" -C "${tmp_dir}"
@@ -408,16 +483,20 @@ install_fzf() {
   print_info "Setting up fzf..."
 
   FZF_DIR="${HOME}/.fzf"
+  log_verbose "fzf dir: ${FZF_DIR}"
 
   if [[ ! -d "${FZF_DIR}" ]]; then
+    log_verbose "Cloning fzf into ${FZF_DIR}"
     git clone --quiet --depth 1 https://github.com/junegunn/fzf.git "${FZF_DIR}"
     print_success "Cloned fzf"
   else
+    log_verbose "Pulling latest fzf"
     git -C "${FZF_DIR}" pull --quiet
     print_success "Updated fzf"
   fi
 
   # Install fzf binary and shell integrations (non-interactively)
+  log_verbose "Running fzf installer: ${FZF_DIR}/install --bin --no-bash --no-zsh --no-fish"
   "${FZF_DIR}/install" --bin --no-bash --no-zsh --no-fish >/dev/null 2>&1
   print_success "Installed fzf binary"
 }
@@ -434,12 +513,17 @@ install_nvim() {
   local latest_url="https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
   local tmp_dir
   tmp_dir=$(mktemp -d)
+  log_verbose "Download URL: ${latest_url}"
+  log_verbose "Temp dir: ${tmp_dir}"
 
   if curl -fsSL "${latest_url}" -o "${tmp_dir}/nvim.tar.gz"; then
+    log_verbose "Extracting Neovim archive"
     tar -xzf "${tmp_dir}/nvim.tar.gz" -C "${tmp_dir}"
+    log_verbose "Installing to /opt/nvim"
     sudo rm -rf /opt/nvim
     sudo mv "${tmp_dir}/nvim-linux-x86_64" /opt/nvim
     # Create symlink if not already on PATH via /opt/nvim/bin
+    log_verbose "Creating symlink: /usr/local/bin/nvim -> /opt/nvim/bin/nvim"
     sudo ln -sf /opt/nvim/bin/nvim /usr/local/bin/nvim
     rm -rf "${tmp_dir}"
     print_success "Installed Neovim $(nvim --version | head -1)"
@@ -470,18 +554,24 @@ install_node() {
   if [[ "${need_install}" == true ]]; then
     print_info "Installing Node.js LTS..."
 
-    if command -v apt &>/dev/null; then
+    local mgr
+    mgr=$(detect_pkg_manager)
+    log_verbose "Detected package manager: ${mgr:-none}"
+
+    if [[ "${mgr}" == "apt" ]]; then
       # Remove old distro-packaged Node.js to avoid conflicts with NodeSource
+      log_verbose "Removing old distro Node.js packages"
       sudo apt remove -y libnode-dev libnode72 nodejs-doc 2>/dev/null || true
       sudo apt autoremove -y 2>/dev/null || true
       # Use NodeSource LTS channel
+      log_verbose "Adding NodeSource LTS repository"
       curl -fsSL "https://deb.nodesource.com/setup_lts.x" | sudo -E bash -
       sudo apt install -y nodejs
-    elif command -v brew &>/dev/null; then
+    elif [[ "${mgr}" == "brew" ]]; then
       brew install node
-    elif command -v pacman &>/dev/null; then
+    elif [[ "${mgr}" == "pacman" ]]; then
       sudo pacman -S --noconfirm nodejs npm
-    elif command -v dnf &>/dev/null; then
+    elif [[ "${mgr}" == "dnf" ]]; then
       sudo dnf install -y nodejs npm
     else
       print_error "Could not detect package manager. Install Node.js LTS manually."
@@ -502,6 +592,7 @@ install_claude_code() {
 
   install_node
 
+  log_verbose "Running: sudo npm install -g @anthropic-ai/claude-code@latest"
   sudo npm install -g @anthropic-ai/claude-code@latest
   if command -v claude &>/dev/null; then
     print_success "Installed Claude Code $(claude --version 2>/dev/null || echo '')"
@@ -516,6 +607,7 @@ install_claude_code() {
 install_coder() {
   print_info "Installing Coder CLI..."
 
+  log_verbose "Running: curl -fsSL https://coder.com/install.sh | sh"
   curl -fsSL https://coder.com/install.sh | sh
   if command -v coder &>/dev/null; then
     print_success "Installed Coder CLI $(coder version 2>/dev/null | head -1 || echo '')"
@@ -529,8 +621,10 @@ install_tpm() {
   print_info "Setting up TPM (Tmux Plugin Manager)..."
 
   TPM_DIR="${HOME}/.tmux/plugins/tpm"
+  log_verbose "TPM dir: ${TPM_DIR}"
 
   if [[ ! -d "${TPM_DIR}" ]]; then
+    log_verbose "Cloning TPM into ${TPM_DIR}"
     mkdir -p "${HOME}/.tmux/plugins"
     git clone --quiet --filter=blob:none https://github.com/tmux-plugins/tpm "${TPM_DIR}"
     print_success "Installed TPM"
@@ -549,24 +643,30 @@ stow_package() {
   local package=$1
   local action=$2
 
+  log_verbose "stow_package: package=${package} action=${action}"
+
   if [[ ! -d "${DOTFILES_DIR}/${package}" ]]; then
-    # Package has no dotfiles to stow (tool-only install)
+    log_verbose "No dotfiles directory for ${package}, skipping stow"
     return 0
   fi
 
   # Ensure ~/.config exists for packages that need it
   if [[ -d "${DOTFILES_DIR}/${package}/.config" ]]; then
+    log_verbose "Creating ${HOME}/.config (needed by ${package})"
     mkdir -p "${HOME}/.config"
   fi
 
   if [[ "${action}" == "remove" ]]; then
+    log_verbose "Running: stow -d ${DOTFILES_DIR} -t ${HOME} -D ${package}"
     stow -d "${DOTFILES_DIR}" -t "${HOME}" -D "${package}" 2>/dev/null && \
       print_success "Removed ${package}" || \
       print_info "Package ${package} was not stowed"
   else
     # Use --adopt to handle existing files, then restore from git
-    if stow -d "${DOTFILES_DIR}" -t "${HOME}" --adopt "${package}" 2>/dev/null; then
+    log_verbose "Running: stow -d ${DOTFILES_DIR} -t ${HOME} --restow --adopt ${package}"
+    if stow -d "${DOTFILES_DIR}" -t "${HOME}" --restow --adopt "${package}" 2>/dev/null; then
       # Restore any adopted files to our version
+      log_verbose "Restoring adopted files from git"
       git -C "${SCRIPT_DIR}" checkout -- "${DOTFILES_DIR}/${package}" 2>/dev/null || true
       print_success "Installed ${package}"
     else
@@ -629,6 +729,10 @@ main() {
         skip_omz=true
         shift
         ;;
+      -v|--verbose)
+        VERBOSE=true
+        shift
+        ;;
       --shellcheck)
         shopt -s globstar
         shellcheck -x -- "${SCRIPT_DIR}"/**/*.sh
@@ -658,6 +762,12 @@ main() {
     esac
   fi
 
+  log_verbose "SCRIPT_DIR: ${SCRIPT_DIR}"
+  log_verbose "DOTFILES_DIR: ${DOTFILES_DIR}"
+  log_verbose "Action: ${action}"
+  log_verbose "Skip OMZ: ${skip_omz}"
+  log_verbose "Packages: ${selected_packages[*]}"
+
   check_stow
 
   if [[ "${action}" == "install" ]]; then
@@ -668,6 +778,7 @@ main() {
   echo "========================"
 
   for package in "${selected_packages[@]}"; do
+    log_verbose "Processing package: ${package}"
     stow_package "${package}" "${action}"
   done
 
