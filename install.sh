@@ -720,6 +720,7 @@ main() {
 
   if [[ "${action}" == "install" ]]; then
     install_make
+    install_node
   fi
 
   echo "Dotfiles ${action}ation"
