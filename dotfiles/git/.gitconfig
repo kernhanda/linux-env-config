@@ -88,6 +88,7 @@
   amend = "commit -a --amend"
   sc = "show -s --format=fuller"
   mm = "!git fetch origin && git merge origin/main"
+	diff-commit = "!f() { git diff ${2:-$1} -- $(git diff-tree --no-commit-id --name-only -r -z $1 | xargs -0 printf \"%s\\n\"); }; f"
 [git]
   lineNumber = true
 [grep]
