@@ -347,6 +347,10 @@ fi
 
 alias find="fd"
 alias grep="rg"
+alias gist="\$HOME/work/scripts/gist.sh"
+
+# Print the command before running it.
+run() { echo "$ $*"; "$@"; }
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
