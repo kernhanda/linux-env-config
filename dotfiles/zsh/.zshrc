@@ -185,9 +185,8 @@ fi
 # Attempt to take over existing sessions before creating a new tmux session.
 # TMUX_DEFAULT_SESSION="tmux"
 # alias tmux="tmux -u a -d -t ${TMUX_DEFAULT_SESSION} 2> /dev/null || tmux -u new -s ${TMUX_DEFAULT_SESSION}"
-if [[ -z "$TMUX" ]]; then
-  # Switch to xterm if we're in a tmux session.
-  TERM="xterm-256color"
+if command -v tmux &>/dev/null && [[ -z "$TMUX" && $- == *i* ]]; then
+  exec tmux new-session -A -s main
 fi
 
 # Start a dev session layout in current directory
