@@ -589,6 +589,13 @@ stow_package() {
     return 0
   fi
 
+  # Skip stowing claude if its settings symlink already exists — the
+  # workspace installer manages this separately.
+  if [[ "${package}" == "claude" && -L "${HOME}/.claude/settings.json" ]]; then
+    print_success "Installed ${package}"
+    return 0
+  fi
+
   # Ensure ~/.config exists for packages that need it
   if [[ -d "${DOTFILES_DIR}/${package}/.config" ]]; then
     log_verbose "Creating ${HOME}/.config (needed by ${package})"
