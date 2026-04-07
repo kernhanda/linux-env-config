@@ -574,6 +574,9 @@ install_tpm() {
 
   # Install plugins automatically (runs outside tmux)
   print_info "Installing tmux plugins..."
+  # TPM resolves the plugin path via `tmux show-environment -g TMUX_PLUGIN_MANAGER_PATH`.
+  # Outside a session that variable doesn't exist yet, so set it before invoking TPM.
+  tmux start-server \; set-environment -g TMUX_PLUGIN_MANAGER_PATH "${HOME}/.tmux/plugins/" 2>/dev/null || true
   "${TPM_DIR}/bin/install_plugins"
   print_success "Installed tmux plugins"
 }
