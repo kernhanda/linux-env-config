@@ -369,5 +369,7 @@ fi
 export PATH="/home/kern/.pixi/bin:$PATH"
 
 if command -v tmux &>/dev/null && [[ -z "$TMUX" && $- == *i* ]]; then
-  tmux new-session -A -s main
+  if ! tmux has-session 2>/dev/null; then
+    tmux new-session -s main
+  fi
 fi
