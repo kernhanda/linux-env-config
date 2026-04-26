@@ -1,6 +1,9 @@
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
 # Initialization code that may require console input (password prompts, [y/n]
 # confirmations, etc.) must go above this block; everything else may go below.
+if command -v tmux &>/dev/null && [[ -z "$TMUX" && $- == *i* && -t 0 && -t 1 ]]; then
+  tmux new-session -A -s main
+fi
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
@@ -367,9 +370,3 @@ if [[ -f ~/.zshrc.local ]]; then
 fi
 
 export PATH="/home/kern/.pixi/bin:$PATH"
-
-if command -v tmux &>/dev/null && [[ -z "$TMUX" && $- == *i* ]]; then
-  if ! tmux has-session 2>/dev/null; then
-    tmux new-session -s main
-  fi
-fi
