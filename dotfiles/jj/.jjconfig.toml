@@ -1,0 +1,19 @@
+# Jujutsu (jj) user configuration. Stowed to ~/.jjconfig.toml.
+#
+# jj is pre-1.0 and ships breaking changes roughly monthly; pin a jj version
+# (>= 0.41) and re-audit these keys on upgrade. Tested against jj 0.41.0.
+
+[user]
+name = "Kern Handa"
+email = "kern.handa@gmail.com"
+
+[templates]
+# Push bookmarks under the kern/ prefix (personal-branch convention).
+# `jj git push -c @` then auto-creates a kern/<change_id> bookmark and pushes it;
+# re-pushing after an edit moves the same bookmark (one change == one PR branch).
+git_push_bookmark = '"kern/" ++ change_id.short()'
+
+[snapshot]
+# Monorepos legitimately contain files above the 1MiB default, which jj would
+# otherwise refuse to snapshot.
+max-new-file-size = "2GiB"
