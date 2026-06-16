@@ -17,3 +17,9 @@ git_push_bookmark = '"kern/" ++ change_id.short()'
 # Monorepos legitimately contain files above the 1MiB default, which jj would
 # otherwise refuse to snapshot.
 max-new-file-size = "2GiB"
+
+[aliases]
+# Push the whole current stack (trunk()..@) as tracked kern/<id> bookmarks.
+push-stack = ["git", "push", "-c", "trunk()..@"]
+# Push just the current change.
+push-this = ["git", "push", "-c", "@"]

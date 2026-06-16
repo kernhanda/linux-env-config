@@ -356,6 +356,9 @@ alias gist="\$HOME/work/scripts/gist.sh"
 # Print the command before running it.
 run() { echo "$ $*"; "$@"; }
 
+# jj + gh pull-request helpers (jpr / jstack). See ~/.jj-gh.sh.
+[[ -r ~/.jj-gh.sh ]] && source ~/.jj-gh.sh
+
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
