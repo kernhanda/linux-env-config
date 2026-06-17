@@ -35,6 +35,7 @@
     # =========================[ Line #1 ]=========================
     # os_icon               # os identifier
     dir                     # current directory
+    jj                      # jujutsu status (suppresses vcs in colocated jj repos)
     vcs                     # git status
     # =========================[ Line #2 ]=========================
     newline                 # \n
@@ -385,6 +386,13 @@
   function my_git_formatter() {
     emulate -L zsh
 
+    # In a colocated jj repo, stay silent — the `jj` segment owns VCS display
+    # here (git sits in detached HEAD and would just be noise).
+    if [[ -d ${VCS_STATUS_WORKDIR:-$PWD}/.jj ]]; then
+      typeset -g my_git_format=
+      return
+    fi
+
     if [[ -n $P9K_CONTENT ]]; then
       # If P9K_CONTENT is not empty, use it. It's either "loading" or from vcs_info (not from
       # gitstatus plugin). VCS_STATUS_* parameters are not available in this case.
@@ -478,6 +486,27 @@
     typeset -g my_git_format=$res
   }
   functions -M my_git_formatter 2>/dev/null
+
+  # Custom `jj` (Jujutsu) prompt segment. Sits left of `vcs`; in colocated jj
+  # repos `my_git_formatter` above goes silent, so this is the only VCS segment.
+  # `--ignore-working-copy` means drawing the prompt never snapshots the repo,
+  # and we only shell out to jj when actually inside a `.jj` tree.
+  function prompt_jj() {
+    emulate -L zsh
+    local root=$PWD
+    while [[ $root != / && ! -d $root/.jj ]]; do root=${root:h}; done
+    [[ -d $root/.jj ]] || return
+    local info
+    info=$(command jj log --ignore-working-copy --no-graph --color=never -r @ -T \
+      'change_id.shortest(8) ++ if(local_bookmarks, " " ++ local_bookmarks.join(" ")) ++ if(empty, " (empty)") ++ if(conflict, " ✗")' \
+      2>/dev/null) || return
+    [[ -n $info ]] || return
+    # Match the vcs scheme: green when empty/clean, yellow when dirty, red on conflict.
+    local bg=2
+    [[ $info == *'(empty)'* ]] || bg=3
+    [[ $info == *✗* ]] && bg=1
+    p10k segment -b $bg -f 0 -t "jj ${info//\%/%%}"
+  }
 
   # Don't count the number of unstaged, untracked and conflicted files in Git repositories with
   # more than this many files in the index. Negative value means infinity.
