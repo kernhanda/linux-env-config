@@ -356,6 +356,10 @@ alias gist="\$HOME/work/scripts/gist.sh"
 # Print the command before running it.
 run() { echo "$ $*"; "$@"; }
 
+# jj (Jujutsu) shell completion. Dynamic (completes bookmarks/revsets); needs
+# compinit, which oh-my-zsh ran above.
+_has jj && source <(jj util completion zsh)
+
 # jj + gh pull-request helper (jpr). See ~/.jj-gh.sh.
 [[ -r ~/.jj-gh.sh ]] && source ~/.jj-gh.sh
 
