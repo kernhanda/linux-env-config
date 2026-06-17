@@ -59,7 +59,12 @@ jpr() {
   # PR number with its title and is built top -> bottom by prepending.
   local -a nums display
   nums=(); display=()
-  local cid title head num body
+  # Declare every scalar local ONCE, here. Re-running `local NAME` on a name
+  # that already holds a value makes zsh echo it (NAME=$'...'); only declared
+  # once, never again below. `entry` lives here (not by its uses) because one
+  # use is conditional and one is not — a lone `local entry` would either leak
+  # to global or re-declare.
+  local cid title head num body entry cur enum etitle block num2 url n
   while IFS="$tab" read -r cid title; do
     [ -z "$cid" ] && continue
     head=$(jj log --no-graph --no-pager -r "$cid" -T "$tmpl")
@@ -90,7 +95,6 @@ jpr() {
   # Annotate bodies with the stack map only when it is actually a stack.
   # Matched by PR number (no array indexing) so it is zsh/bash portable.
   if [ "${#nums[@]}" -ge 2 ]; then
-    local cur entry enum etitle body block
     for cur in "${nums[@]}"; do
       block="<!-- jstack -->${nl}---${nl}📚 **Stack** (top → bottom):${nl}"
       for entry in "${display[@]}"; do
@@ -110,11 +114,9 @@ jpr() {
   fi
 
   # Finalize: the one (possibly) notifying step, after the stack is consistent.
-  local n
   for n in "${nums[@]}"; do
     _pr_set_draft "$n" "$want_draft"
   done
-  local entry num2 url
   for entry in "${display[@]}"; do
     num2=${entry%%${tab}*}
     url=$(gh pr view "$num2" --json url --jq .url)
