@@ -384,6 +384,35 @@ install_gh() {
   fi
 }
 
+install_jj() {
+  if command -v jj &>/dev/null; then
+    print_info "jj already installed: $(jj --version)"
+    return 0
+  fi
+
+  print_info "Installing jj (Jujutsu)..."
+
+  local version
+  version=$(curl -s https://api.github.com/repos/jj-vcs/jj/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
+  local url="https://github.com/jj-vcs/jj/releases/download/v${version}/jj-v${version}-x86_64-unknown-linux-musl.tar.gz"
+  local tmp_dir
+  tmp_dir=$(mktemp -d)
+  log_verbose "jj version: ${version}"
+  log_verbose "Download URL: ${url}"
+  log_verbose "Temp dir: ${tmp_dir}"
+
+  if curl -fsSL "${url}" -o "${tmp_dir}/jj.tar.gz"; then
+    tar -xzf "${tmp_dir}/jj.tar.gz" -C "${tmp_dir}"
+    sudo mv "${tmp_dir}/jj" /usr/local/bin/jj
+    rm -rf "${tmp_dir}"
+    print_success "Installed jj $(jj --version)"
+  else
+    rm -rf "${tmp_dir}"
+    print_error "Failed to download jj"
+    return 1
+  fi
+}
+
 install_yq() {
   if command -v yq &>/dev/null; then
     print_info "yq already installed: $(yq --version)"
@@ -802,6 +831,16 @@ main() {
     for pkg in "${selected_packages[@]}"; do
       if [[ "${pkg}" == "gh" ]]; then
         install_gh
+        break
+      fi
+    done
+  fi
+
+  # Install jj (Jujutsu) if installing jj package
+  if [[ "${action}" == "install" ]]; then
+    for pkg in "${selected_packages[@]}"; do
+      if [[ "${pkg}" == "jj" ]]; then
+        install_jj
         break
       fi
     done
