@@ -8,7 +8,10 @@
 #       Create/refresh one draft PR per change in (trunk()..TOP) ~ empty()
 #       (default TOP=@), each based on the one below it. The empty working-copy
 #       change is dropped automatically, so a lone real change just makes one
-#       PR. With 2+ changes, every PR body is annotated with the stack map.
+#       PR. Every run resyncs each PR's title and body from its jj change
+#       description, so re-running after `jj describe` keeps the PR text current
+#       (jpr owns the description; edits made on GitHub are overwritten). With
+#       2+ changes, every PR body is then annotated with the stack map.
 #
 # There is no separate single-PR vs stacked-PR command: in jj a single PR is
 # just a one-deep stack, so jpr is the only verb.
@@ -56,16 +59,21 @@ jpr() {
   # PR number with its title and is built top -> bottom by prepending.
   local -a nums display
   nums=(); display=()
-  local cid title head num
+  local cid title head num body
   while IFS="$tab" read -r cid title; do
     [ -z "$cid" ] && continue
     head=$(jj log --no-graph --no-pager -r "$cid" -T "$tmpl")
+    # PR body = the change description minus its first line (the title) and the
+    # blank lines that follow it. Recomputed every run so the PR tracks the
+    # current `jj describe` text rather than whatever was filled at create time.
+    body=$(jj log --no-graph --no-pager -r "$cid" -T 'description' \
+             | sed -e '1d' -e '/./,$!d')
     num=$(gh pr list --head "$head" --state open --json number --jq '.[0].number // empty')
     if [ -n "$num" ]; then
       [ -z "$JPR_KEEP_READY" ] && _pr_set_draft "$num" 1   # quiet the churn
-      gh pr edit "$num" --base "$base" >/dev/null
+      gh pr edit "$num" --title "$title" --body "$body" --base "$base" >/dev/null
     else
-      gh pr create --draft --fill --head "$head" --base "$base" >/dev/null
+      gh pr create --draft --title "$title" --body "$body" --head "$head" --base "$base" >/dev/null
       num=$(gh pr list --head "$head" --state open --json number --jq '.[0].number // empty')
     fi
     nums+=("$num")
