@@ -24,3 +24,6 @@ max-new-file-size = "2GiB"
 push-stack = ["git", "push", "-c", "(trunk()..@) ~ empty()"]
 # Push just the current change.
 push-this = ["git", "push", "-c", "@"]
+# Subcommand shorthands.
+fetch = ["git", "fetch"]
+track = ["bookmark", "track"]
