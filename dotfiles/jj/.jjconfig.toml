@@ -19,7 +19,8 @@ git_push_bookmark = '"kern/" ++ change_id.short()'
 max-new-file-size = "2GiB"
 
 [aliases]
-# Push the whole current stack (trunk()..@) as tracked kern/<id> bookmarks.
-push-stack = ["git", "push", "-c", "trunk()..@"]
+# Push the whole current stack as tracked kern/<id> bookmarks, dropping the
+# empty working-copy change so `jj push-stack` mirrors what `jpr` pushes.
+push-stack = ["git", "push", "-c", "(trunk()..@) ~ empty()"]
 # Push just the current change.
 push-this = ["git", "push", "-c", "@"]
