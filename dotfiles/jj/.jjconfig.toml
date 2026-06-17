@@ -18,6 +18,10 @@ git_push_bookmark = '"kern/" ++ change_id.short()'
 # otherwise refuse to snapshot.
 max-new-file-size = "2GiB"
 
+[ui]
+# Bare `jj` (no subcommand) prints status instead of the default `log`.
+default-command = "status"
+
 [aliases]
 # Push the whole current stack as tracked kern/<id> bookmarks, dropping the
 # empty working-copy change so `jj push-stack` mirrors what `jpr` pushes.
