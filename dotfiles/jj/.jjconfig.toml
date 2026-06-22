@@ -34,6 +34,11 @@ if(current_working_copy && !empty,
 # template-aliases.log_with_working_copy). Plain `jj log` keeps the default
 # template.
 default-command = ["log", "-T", "log_with_working_copy"]
+# Interactive diff selection (diffedit/split/squash -i) uses hunk.nvim, which
+# jj launches via the :DiffEditor command. diff-instructions = false drops the
+# JJ-INSTRUCTIONS pseudo-file so it isn't a node in hunk's file tree.
+diff-editor = ["nvim", "-c", "DiffEditor $left $right $output"]
+diff-instructions = false
 
 [aliases]
 # Push the whole current stack as tracked kern/<id> bookmarks, dropping the
