@@ -18,9 +18,22 @@ git_push_bookmark = '"kern/" ++ change_id.short()'
 # otherwise refuse to snapshot.
 max-new-file-size = "2GiB"
 
+[template-aliases]
+# `jj log` node template that annotates the working-copy commit (@) with its
+# uncommitted file changes, so a bare `jj` shows both the graph and what `jj st`
+# lists. `status` has no graph mode and `log` no working-copy summary; this
+# bridges them. Only `@` is annotated, and only when it's non-empty.
+'log_with_working_copy' = '''
+builtin_log_compact ++
+if(current_working_copy && !empty,
+  "Working copy changes:\n" ++ self.diff().summary())
+'''
+
 [ui]
-# Bare `jj` (no subcommand) prints status instead of the default `log`.
-default-command = "status"
+# Bare `jj` (no subcommand) prints the log graph with working-copy changes (see
+# template-aliases.log_with_working_copy). Plain `jj log` keeps the default
+# template.
+default-command = ["log", "-T", "log_with_working_copy"]
 
 [aliases]
 # Push the whole current stack as tracked kern/<id> bookmarks, dropping the
