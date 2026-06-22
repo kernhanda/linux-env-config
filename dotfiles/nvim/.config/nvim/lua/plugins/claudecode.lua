@@ -50,4 +50,37 @@ return {
     --   { name = "Claude Haiku 4.5 (Latest)", value = "haiku" },
     -- },
   },
+
+  -- snacks.nvim opens the Claude terminal as a left/right split and pins it
+  -- with `winfixwidth`, and only recomputes float geometry on VimResized -- so
+  -- the pane keeps a fixed column count when nvim itself is resized (e.g. the
+  -- tmux pane grows/shrinks). Re-apply the width fraction ourselves so the
+  -- Claude split tracks the editor like every other window.
+  init = function()
+    local pct = 0.30 -- keep in sync with terminal.split_width_percentage
+    vim.api.nvim_create_autocmd("VimResized", {
+      group = vim.api.nvim_create_augroup("claudecode_resize", { clear = true }),
+      desc = "Keep the Claude Code split proportional on editor resize",
+      callback = function()
+        local ok, term = pcall(require, "claudecode.terminal")
+        if not ok then
+          return
+        end
+        local bufnr = term.get_active_terminal_bufnr()
+        if not bufnr then
+          return
+        end
+        -- Run after snacks' own VimResized handler has settled.
+        vim.schedule(function()
+          for _, win in ipairs(vim.fn.win_findbuf(bufnr)) do
+            if vim.api.nvim_win_is_valid(win) and vim.api.nvim_win_get_config(win).relative == "" then
+              vim.api.nvim_win_call(win, function()
+                vim.cmd("vertical resize " .. math.floor(vim.o.columns * pct))
+              end)
+            end
+          end
+        end)
+      end,
+    })
+  end,
 }
