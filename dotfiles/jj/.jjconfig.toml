@@ -31,3 +31,4 @@ push-this = ["git", "push", "-c", "@"]
 # Subcommand shorthands.
 fetch = ["git", "fetch"]
 track = ["bookmark", "track"]
+prep = ["rebase", "-d", "main@origin"]
