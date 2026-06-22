@@ -32,3 +32,16 @@ push-this = ["git", "push", "-c", "@"]
 fetch = ["git", "fetch"]
 track = ["bookmark", "track"]
 prep = ["rebase", "-d", "main@origin"]
+
+[colors."diff added"]
+fg = "#a6e3a1"
+
+[colors."diff removed"]
+fg = "#f38ba8"
+
+[colors."diff token"]
+underline = false
+
+[merge-tools.wdiff]
+program = "/home/ubuntu/work/dotfiles/dotfiles/jj/wdiff-linenum.sh"
+diff-args = ["$left","$right"]
