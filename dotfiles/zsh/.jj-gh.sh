@@ -29,9 +29,11 @@
 # There is no separate single-PR vs stacked-PR command: in jj a single PR is
 # just a one-deep stack, so jpr is the only verb.
 #
-# Notifications: all create/base/body churn happens in draft; PRs are flipped
-# to "ready for review" only once at the very end (unless -d), so reviewers get
-# at most one notification per PR. Final state defaults to ready; export
+# Notifications: existing PRs are drafted before the push, so even the push's
+# new commits land quietly; all create/base/body churn likewise happens in
+# draft; PRs are flipped to "ready for review" only once at the very end
+# (unless -d), so reviewers get at most one notification per PR. Final state
+# defaults to ready; export
 # JPR_DRAFT=1 to default to draft (matches the "all PRs are drafts" house rule).
 # JPR_BASE overrides the trunk base branch (default main). JPR_KEEP_READY=1
 # leaves already-ready PRs alone instead of force-drafting them during edits.
@@ -137,11 +139,22 @@ jpr() {
     esac
   fi
 
-  # EXECUTION. Push the bookmarks, then ensure a DRAFT PR per change (bottom ->
-  # top, so a change's in-range parent already has a PR number by the time we
-  # need it). `exec_seen` maps cid -> PR number for resolving each child's base
-  # PR in the annotation; `display` pairs each PR with its base PR and title,
-  # built top -> bottom by prepending.
+  # EXECUTION. Draft every already-existing PR *before* the push, so the new
+  # commits land on a draft branch and can't notify reviewers (new PRs don't
+  # exist until after the push, so they stay quiet either way). JPR_KEEP_READY
+  # opts out, leaving ready PRs ready. Then push, then ensure a DRAFT PR per
+  # change (bottom -> top, so a change's in-range parent already has a PR number
+  # by the time we need it). `exec_seen` maps cid -> PR number for resolving each
+  # child's base PR in the annotation; `display` pairs each PR with its base PR
+  # and title, built top -> bottom by prepending.
+  if [ -z "$JPR_KEEP_READY" ]; then
+    for entry in "${plan[@]}"; do
+      rest=${entry#*${tab}}; rest=${rest#*${tab}}   # drop cid, head
+      rest=${rest#*${tab}}; rest=${rest#*${tab}}    # drop cur_base, base_change
+      existing_num=${rest%%${tab}*}
+      [ -n "$existing_num" ] && _pr_set_draft "$existing_num" 1
+    done
+  fi
   jj git push -c "$range" || return 1
   for entry in "${plan[@]}"; do
     cid=${entry%%${tab}*};         rest=${entry#*${tab}}
@@ -162,7 +175,8 @@ jpr() {
              | sed -e '1d' -e '/./,$!d')
     if [ -n "$existing_num" ]; then
       num="$existing_num"
-      [ -z "$JPR_KEEP_READY" ] && _pr_set_draft "$num" 1   # quiet the churn
+      # Already drafted in the pre-push pass (unless JPR_KEEP_READY), so this
+      # edit's churn is quiet too.
       gh pr edit "$num" --title "$title" --body "$body" --base "$cur_base" >/dev/null
     else
       gh pr create --draft --title "$title" --body "$body" --head "$head" --base "$cur_base" >/dev/null
