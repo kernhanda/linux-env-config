@@ -228,9 +228,9 @@ jpr() {
       num=${entry%%${tab}*};        rest=${entry#*${tab}}
       cid=${rest%%${tab}*};         rest=${rest#*${tab}}
       base_change=${rest%%${tab}*}; rest=${rest#*${tab}}
-      excluded=${rest%%${tab}*};    title=${rest#*${tab}}
+      excluded=${rest%%${tab}*}
       [ "$excluded" = "1" ] && continue
-      vis+=("$num$tab$title")
+      vis+=("$num")
       bc="$base_change"
       while [ -n "$bc" ]; do
         case "$excluded_marks" in *"|$bc|"*) ;; *) break ;; esac
@@ -261,11 +261,11 @@ jpr() {
         header="📚 **Related PRs** (independent, based on \`$base\`):"
       fi
       for cur in "${vis[@]}"; do
-        cur=${cur%%${tab}*}
         block="<!-- jstack -->${nl}---${nl}${header}${nl}"
         for entry in "${vis[@]}"; do
-          enum=${entry%%${tab}*}; etitle=${entry#*${tab}}
-          line="- #${enum} ${etitle}"
+          # GitHub renders #<id> as the PR's (live) title, so the bare ref is enough.
+          enum=$entry
+          line="- #${enum}"
           if [ "$any_parent_vis" -eq 1 ]; then
             ebase=""
             for s in "${fmap[@]}"; do
