@@ -48,6 +48,8 @@ push-stack = ["git", "push", "-c", "(trunk()..@) ~ empty()"]
 push-this = ["git", "push", "-c", "@"]
 # Subcommand shorthands.
 fetch = ["git", "fetch"]
+push = ["git", "push"]
+drop = ["abandon"]
 track = ["bookmark", "track"]
 prep = ["rebase", "-d", "main@origin"]
 
