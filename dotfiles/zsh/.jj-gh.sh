@@ -12,8 +12,9 @@
 #       main) when it has no such ancestor. So a linear stack chains, and
 #       parallel branches each target trunk — e.g. three sibling changes joined
 #       by an empty merge produce three independent PRs against main, not a fake
-#       linear chain. Empty changes (the working copy, merge nodes) are dropped,
-#       so a lone real change just makes one PR. Every run resyncs each PR's
+#       linear chain. Empty changes (the working copy, merge nodes) and changes
+#       with no description set are dropped, so a lone real change just makes one
+#       PR. Every run resyncs each PR's
 #       title and body from its jj change description, so re-running after
 #       `jj describe` keeps the PR text current (jpr owns the description; edits
 #       made on GitHub are overwritten). With 2+ changes, every PR body is then
@@ -82,7 +83,11 @@ jpr() {
 
   # `base` is the trunk branch and is never reassigned: each change computes its
   # own base from its parent, so it must not leak into the next iteration.
-  local range="(trunk()..$top) ~ empty()" tmpl
+  # `description("")` is jj's special-case for "no description set", so the range
+  # also drops undescribed changes — there's nothing to title/body a PR with, and
+  # `jj git push` refuses them anyway. A child whose nearest in-range ancestor is
+  # undescribed re-points its base past it, exactly as for empty changes.
+  local range="(trunk()..$top) ~ empty() ~ description(\"\")" tmpl
   local tab=$'\t' nl=$'\n'
   tmpl=$(jj config get templates.git_push_bookmark)
 
