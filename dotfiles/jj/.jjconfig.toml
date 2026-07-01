@@ -51,7 +51,7 @@ fetch = ["git", "fetch"]
 push = ["git", "push"]
 drop = ["abandon"]
 track = ["bookmark", "track"]
-prep = ["rebase", "-d", "main@origin"]
+prep = ["rebase", "--skip-emptied", "--simplify-parents", "-o", "main@origin"]
 
 [colors."diff added"]
 fg = "#a6e3a1"
