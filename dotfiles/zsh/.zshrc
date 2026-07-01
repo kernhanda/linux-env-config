@@ -363,6 +363,30 @@ _has jj && source <(jj util completion zsh)
 # jj + gh pull-request helper (jpr). See ~/.jj-gh.sh.
 [[ -r ~/.jj-gh.sh ]] && source ~/.jj-gh.sh
 
+# jvim [REVSET]: open the files touched by a jj change (default @) in $EDITOR.
+# `jj diff --name-only` prints paths relative to $PWD, so they pass straight to
+# the editor from any subdir. Paths that no longer exist (deletions, the old
+# side of a rename) are dropped.
+jvim() {
+  emulate -L zsh
+  local rev="${1:-@}" out
+  if ! out="$(jj diff -r "$rev" --name-only 2>&1)"; then
+    print -u2 "jvim: $out"
+    return 1
+  fi
+  local -a files existing
+  local f
+  files=("${(@f)out}")
+  for f in "${files[@]}"; do
+    [[ -n "$f" && -e "$f" ]] && existing+=("$f")
+  done
+  if (( ${#existing} == 0 )); then
+    print -u2 "jvim: no editable files in jj change '$rev'"
+    return 1
+  fi
+  "${EDITOR:-vim}" "${existing[@]}"
+}
+
 export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
