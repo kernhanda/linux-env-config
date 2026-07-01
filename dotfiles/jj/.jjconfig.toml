@@ -52,6 +52,7 @@ push = ["git", "push"]
 drop = ["abandon"]
 track = ["bookmark", "track"]
 prep = ["rebase", "--skip-emptied", "--simplify-parents", "-o", "main@origin"]
+stat = ["show", "--stat"]
 
 [colors."diff added"]
 fg = "#a6e3a1"
