@@ -367,6 +367,11 @@ _has jj && source <(jj util completion zsh)
 # `jj diff --name-only` prints paths relative to $PWD, so they pass straight to
 # the editor from any subdir. Paths that no longer exist (deletions, the old
 # side of a rename) are dropped.
+#
+# Hunks are loaded into the quickfix list (one entry per @@ header, new-side
+# line numbers), so ]q / [q jump between hunks across files. Line numbers are
+# exact for @ (the default); for historical revs they refer to that rev's file
+# version, so treat them as approximate.
 jvim() {
   emulate -L zsh
   local rev="${1:-@}" out
@@ -384,7 +389,26 @@ jvim() {
     print -u2 "jvim: no editable files in jj change '$rev'"
     return 1
   fi
-  "${EDITOR:-vim}" "${existing[@]}"
+
+  # file:line: <hunk context> per hunk; matches the default 'errorformat'.
+  # --context 0 makes the @@ new-side start the first changed line.
+  local qf
+  qf="$(mktemp)" && jj diff -r "$rev" --git --context 0 2>/dev/null | awk '
+    /^\+\+\+ / { file = substr($0, 5); sub(/^b\//, "", file) }
+    /^@@ / {
+      if (file == "/dev/null") next
+      line = $0; sub(/^@@ -[^ ]* \+/, "", line); sub(/[ ,].*/, "", line)
+      ctx = $0; sub(/^@@[^@]*@@ ?/, "", ctx)
+      printf "%s:%s: %s\n", file, line, (ctx == "" ? "(hunk)" : ctx)
+    }
+  ' > "$qf"
+
+  if [[ -s "$qf" ]]; then
+    "${EDITOR:-vim}" "${existing[@]}" -c "silent cfile $qf"
+  else
+    "${EDITOR:-vim}" "${existing[@]}"
+  fi
+  rm -f "$qf"
 }
 
 export NVM_DIR="$HOME/.nvm"
