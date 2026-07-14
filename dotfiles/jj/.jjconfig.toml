@@ -18,6 +18,14 @@ git_push_bookmark = '"kern/" ++ change_id.short()'
 # otherwise refuse to snapshot.
 max-new-file-size = "2GiB"
 
+[revset-aliases]
+# Commits marked as not-for-push by description prefix.
+"wip()" = 'description(glob:"wip:*") | description(glob:"private:*")'
+
+[git]
+# Refuse to push wip()/private commits (or bookmarks with one as an ancestor).
+private-commits = "wip()"
+
 [template-aliases]
 # `jj log` node template that annotates the working-copy commit (@) with its
 # uncommitted file changes, so a bare `jj` shows both the graph and what `jj st`
@@ -52,6 +60,9 @@ push = ["git", "push"]
 drop = ["abandon"]
 track = ["bookmark", "track"]
 prep = ["rebase", "--skip-emptied", "--simplify-parents", "-o", "main@origin"]
+# Megamerge: `jj mm A B C` creates a wip: merge of the given changes
+# (bare `jj mm` just starts a wip change on @). wip() keeps it unpushable.
+mm = ["new", "-m", "wip: megamerge"]
 stat = ["show", "--stat"]
 
 [colors."diff added"]
