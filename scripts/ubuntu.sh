@@ -11,6 +11,7 @@ sudo apt install -y \
   build-essential \
   curl \
   fd-find \
+  gettext-base \
   git \
   gpg \
   libssl-dev \

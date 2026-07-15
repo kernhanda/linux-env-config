@@ -12,6 +12,7 @@ RUN apt update && apt install -y \
   clang-15 \
   curl \
   fd-find \
+  gettext-base \
   git \
   gpg \
   libssl-dev \
