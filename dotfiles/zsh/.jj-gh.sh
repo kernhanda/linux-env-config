@@ -4,7 +4,7 @@
 # `gh` therefore can't infer --head from a current branch. Branch names come
 # from jj's own `templates.git_push_bookmark`, so they track that config.
 #
-#   jpr [TOP] [-d|--draft] [-y|--yes] [--base BRANCH] [--no-footer] [--no-footer-for REVSET]
+#   jpr [TOP] [-d|--draft] [-y|--yes] [--base BRANCH] [--no-footer] [--no-footer-for REVSET] [--no-reuse]
 #       Create/refresh one draft PR per non-empty change in (trunk()..TOP)
 #       (default TOP=@). Each PR is based on its *actual* parent: a change's
 #       base is the branch of its nearest ancestor that is itself a pushable
@@ -29,6 +29,14 @@
 #       whose nearest in-range ancestor is excluded re-points past it to the
 #       next visible ancestor (or trunk). The excluded change's own PR base is
 #       left untouched — only the cosmetic map hides it.
+#
+#       A change may already live on a differently-named upstream bookmark
+#       (pushed before jpr, or under another git_push_bookmark template). When
+#       the templated branch has no open PR but another local bookmark on the
+#       change does, jpr adopts that bookmark as the change's head and updates
+#       its PR instead of minting a duplicate branch + PR; such lines are marked
+#       [existing bookmark] in the plan, and stacked children base on the
+#       adopted name. --no-reuse (JPR_NO_REUSE=1) disables the adoption.
 #
 #       jpr first prints the plan (which branches it will push, and which PRs it
 #       will create vs update, with their bases) and asks for confirmation
@@ -64,7 +72,7 @@ _pr_set_draft() {
 
 jpr() {
   local top="@" want_draft="${JPR_DRAFT:-0}" base="${JPR_BASE:-main}" assume_yes="${JPR_YES:-0}" \
-        no_footer="${JPR_NO_FOOTER:-0}" no_footer_for="${JPR_NO_FOOTER_FOR:-}"
+        no_footer="${JPR_NO_FOOTER:-0}" no_footer_for="${JPR_NO_FOOTER_FOR:-}" no_reuse="${JPR_NO_REUSE:-0}"
   while [ $# -gt 0 ]; do
     case "$1" in
       -d|--draft)  want_draft=1 ;;
@@ -74,7 +82,8 @@ jpr() {
       --no-footer) no_footer=1 ;;
       --no-footer-for)   shift; no_footer_for="$1" ;;
       --no-footer-for=*) no_footer_for="${1#--no-footer-for=}" ;;
-      -h|--help)   echo "usage: jpr [TOP] [-d|--draft] [-y|--yes] [--base BRANCH] [--no-footer] [--no-footer-for REVSET]"; return 0 ;;
+      --no-reuse)  no_reuse=1 ;;
+      -h|--help)   echo "usage: jpr [TOP] [-d|--draft] [-y|--yes] [--base BRANCH] [--no-footer] [--no-footer-for REVSET] [--no-reuse]"; return 0 ;;
       -*)          echo "jpr: unknown option: $1" >&2; return 2 ;;
       *)           top="$1" ;;
     esac
@@ -91,15 +100,15 @@ jpr() {
   local tab=$'\t' nl=$'\n'
   tmpl=$(jj config get templates.git_push_bookmark)
 
-  local -a plan nums display exec_seen vis fmap
-  plan=(); nums=(); display=(); exec_seen=()
+  local -a plan nums display exec_seen vis fmap heads_seen push_args
+  plan=(); nums=(); display=(); exec_seen=(); heads_seen=(); push_args=()
   # Declare every scalar local ONCE, here. Re-running `local NAME` on a name
   # that already holds a value makes zsh echo it (NAME=$'...'); declared once,
   # never again below — assign (without `local`) wherever needed.
   local cid title head base_change cur_base existing_num tag pline preview \
         fstate reply entry rest s body num cur enum ebase etitle line header \
         block num2 url n excluded excluded_cids excluded_marks any_parent_vis \
-        bc nbc ecid e fbase_num
+        bc nbc ecid e fbase_num reuse bmk bnum
 
   # Resolve --no-footer-for to a "|cid|cid|" lookup over the range (empty set
   # when unset, or when --no-footer drops the whole map anyway). Intersecting
@@ -121,6 +130,20 @@ jpr() {
   while IFS="$tab" read -r cid title; do
     [ -z "$cid" ] && continue
     head=$(jj log --no-graph --no-pager -r "$cid" -T "$tmpl")
+    reuse=0
+    existing_num=$(gh pr list --head "$head" --state open --json number --jq '.[0].number // empty')
+    # The change may already live on a differently-named upstream bookmark with
+    # an open PR (local bookmarks follow rewrites, so they sit on the current
+    # commit even after amends). Adopt the first such bookmark as the head
+    # instead of minting a duplicate branch + PR.
+    if [ -z "$existing_num" ] && [ "$no_reuse" -ne 1 ]; then
+      while IFS= read -r bmk; do
+        { [ -z "$bmk" ] || [ "$bmk" = "$head" ] || [ "$bmk" = "$base" ]; } && continue
+        bnum=$(gh pr list --head "$bmk" --state open --json number --jq '.[0].number // empty')
+        [ -n "$bnum" ] && { head="$bmk"; existing_num="$bnum"; reuse=1; break; }
+      done < <(jj log --no-graph --no-pager -r "$cid" \
+                 -T 'local_bookmarks.map(|b| b.name() ++ "\n").join("")')
+    fi
     # Base = the nearest ancestor that is itself a pushable change in the range;
     # none -> trunk. heads() picks the closest; first line covers the (rare)
     # merge-of-two-stacks case where GitHub still needs a single base.
@@ -128,14 +151,22 @@ jpr() {
                     -r "heads((::${cid}-) & ($range))" \
                     -T 'change_id.short() ++ "\n"' | head -n1)
     if [ -n "$base_change" ]; then
-      cur_base=$(jj log --no-graph --no-pager -r "$base_change" -T "$tmpl")
+      # The ancestor was already planned (bottom -> top walk), so take its
+      # resolved head — it may be an adopted bookmark, not the templated name.
+      cur_base=""
+      for s in "${heads_seen[@]}"; do
+        [ "${s%%${tab}*}" = "$base_change" ] && { cur_base=${s#*${tab}}; break; }
+      done
+      [ -z "$cur_base" ] && cur_base=$(jj log --no-graph --no-pager -r "$base_change" -T "$tmpl")
     else
       cur_base="$base"
     fi
-    existing_num=$(gh pr list --head "$head" --state open --json number --jq '.[0].number // empty')
     if [ -n "$existing_num" ]; then tag="update #$existing_num"; else tag="create"; fi
-    plan+=("$cid$tab$head$tab$cur_base$tab$base_change$tab$existing_num$tab$title")
+    heads_seen+=("$cid$tab$head")
+    if [ "$reuse" -eq 1 ]; then push_args+=(-b "$head"); else push_args+=(-c "$cid"); fi
+    plan+=("$cid$tab$head$tab$cur_base$tab$base_change$tab$existing_num$tab$reuse$tab$title")
     pline=$(printf '  %-15s %-22s → %-14s %s' "$tag" "$head" "$cur_base" "$title")
+    [ "$reuse" -eq 1 ] && pline="${pline}  [existing bookmark]"
     preview="${pline}${nl}${preview}"
   done < <(jj log --no-graph --no-pager --reversed -r "$range" \
              -T 'change_id.short() ++ "\t" ++ description.first_line() ++ "\n"')
@@ -189,13 +220,14 @@ jpr() {
       [ -n "$existing_num" ] && _pr_set_draft "$existing_num" 1
     done
   fi
-  jj git push -c "$range" || return 1
+  jj git push "${push_args[@]}" || return 1
   for entry in "${plan[@]}"; do
     cid=${entry%%${tab}*};         rest=${entry#*${tab}}
     head=${rest%%${tab}*};         rest=${rest#*${tab}}
     cur_base=${rest%%${tab}*};     rest=${rest#*${tab}}
     base_change=${rest%%${tab}*};  rest=${rest#*${tab}}
-    existing_num=${rest%%${tab}*}; title=${rest#*${tab}}
+    existing_num=${rest%%${tab}*}; rest=${rest#*${tab}}
+    reuse=${rest%%${tab}*};        title=${rest#*${tab}}
     case "$excluded_marks" in *"|$cid|"*) excluded=1 ;; *) excluded=0 ;; esac
     # PR body = the change description minus its first line (the title) and the
     # blank lines that follow it. Recomputed every run so the PR tracks the
