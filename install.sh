@@ -413,6 +413,40 @@ install_jj() {
   fi
 }
 
+install_jjui() {
+  if command -v jjui &>/dev/null; then
+    print_info "jjui already installed: $(jjui --version)"
+    return 0
+  fi
+
+  print_info "Installing jjui..."
+
+  if ! command -v unzip &>/dev/null; then
+    pkg_install unzip
+  fi
+
+  local version
+  version=$(curl -s https://api.github.com/repos/idursun/jjui/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
+  local url="https://github.com/idursun/jjui/releases/download/v${version}/jjui-${version}-linux-amd64.zip"
+  local tmp_dir
+  tmp_dir=$(mktemp -d)
+  log_verbose "jjui version: ${version}"
+  log_verbose "Download URL: ${url}"
+  log_verbose "Temp dir: ${tmp_dir}"
+
+  if curl -fsSL "${url}" -o "${tmp_dir}/jjui.zip"; then
+    unzip -q "${tmp_dir}/jjui.zip" -d "${tmp_dir}"
+    chmod +x "${tmp_dir}/jjui-${version}-linux-amd64"
+    sudo mv "${tmp_dir}/jjui-${version}-linux-amd64" /usr/local/bin/jjui
+    rm -rf "${tmp_dir}"
+    print_success "Installed jjui $(jjui --version)"
+  else
+    rm -rf "${tmp_dir}"
+    print_error "Failed to download jjui"
+    return 1
+  fi
+}
+
 install_yq() {
   if command -v yq &>/dev/null; then
     print_info "yq already installed: $(yq --version)"
@@ -836,11 +870,12 @@ main() {
     done
   fi
 
-  # Install jj (Jujutsu) if installing jj package
+  # Install jj (Jujutsu) and jjui if installing jj package
   if [[ "${action}" == "install" ]]; then
     for pkg in "${selected_packages[@]}"; do
       if [[ "${pkg}" == "jj" ]]; then
         install_jj
+        install_jjui
         break
       fi
     done
