@@ -33,8 +33,13 @@ RUN apt update && apt install -y \
 
 WORKDIR /tmp
 
-# Install Neovim AppImage.
-RUN wget https://github.com/neovim/neovim/releases/download/stable/nvim.appimage \
+# Install Neovim AppImage. Releases name arm64 builds "arm64", not "aarch64".
+RUN case "$(uname -m)" in \
+    x86_64) NVIM_ARCH=x86_64 ;; \
+    aarch64) NVIM_ARCH=arm64 ;; \
+    *) echo "Unsupported architecture: $(uname -m)" >&2; exit 1 ;; \
+  esac \
+  && wget "https://github.com/neovim/neovim/releases/download/stable/nvim-linux-${NVIM_ARCH}.appimage" -O nvim.appimage \
   && chmod +x nvim.appimage \
   && ./nvim.appimage --appimage-extract \
   && mv squashfs-root / \
