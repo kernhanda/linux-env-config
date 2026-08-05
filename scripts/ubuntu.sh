@@ -6,6 +6,17 @@ _has() {
   return $(which "$1" >/dev/null)
 }
 
+# Arch token for the nvim and lazygit release assets, which both name arm64
+# builds "arm64" rather than "aarch64".
+case "$(uname -m)" in
+  x86_64 | amd64) ARCH=x86_64 ;;
+  aarch64 | arm64) ARCH=arm64 ;;
+  *)
+    echo "Unsupported architecture: $(uname -m) (need x86_64 or aarch64)" >&2
+    exit 1
+    ;;
+esac
+
 sudo apt install -y \
   bat \
   build-essential \
@@ -30,7 +41,7 @@ sudo apt install -y \
   zsh \
 
 if ! _has nvim; then
-  wget https://github.com/neovim/neovim/releases/download/stable/nvim-linux-x86_64.appimage -O nvim.appimage
+  wget "https://github.com/neovim/neovim/releases/download/stable/nvim-linux-${ARCH}.appimage" -O nvim.appimage
   chmod +x nvim.appimage
   ./nvim.appimage --appimage-extract
   sudo mv squashfs-root /usr/local/bin/nvim-squashfs-root
@@ -54,7 +65,7 @@ fi
 
 if ! _has lazygit; then
     LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
-    curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+    curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_linux_${ARCH}.tar.gz"
     tar xf lazygit.tar.gz lazygit
     install lazygit "$HOME"/.local/bin
     rm -r lazygit lazygit.tar.gz

@@ -29,6 +29,9 @@ dotfiles/
 
 ### Prerequisites
 
+Linux on x86_64 or aarch64. Tools without a system package are downloaded as
+prebuilt binaries for the detected architecture.
+
 Install GNU Stow:
 
 ```bash

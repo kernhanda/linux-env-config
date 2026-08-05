@@ -71,6 +71,37 @@ log_verbose() {
   fi
 }
 
+# Arch tokens for upstream release assets. Three naming schemes are in play:
+# Rust target triples (fd, bat, jj, eza), Go GOARCH (jjui, yq), and the
+# x86_64/arm64 mix used by lazygit and Neovim.
+ARCH_RUST=""
+ARCH_GO=""
+ARCH_MIXED=""
+
+detect_arch() {
+  local machine
+  machine=$(uname -m)
+
+  case "${machine}" in
+    x86_64 | amd64)
+      ARCH_RUST="x86_64"
+      ARCH_GO="amd64"
+      ARCH_MIXED="x86_64"
+      ;;
+    aarch64 | arm64)
+      ARCH_RUST="aarch64"
+      ARCH_GO="arm64"
+      ARCH_MIXED="arm64"
+      ;;
+    *)
+      print_error "Unsupported architecture: ${machine} (need x86_64 or aarch64)"
+      exit 1
+      ;;
+  esac
+
+  log_verbose "Architecture: ${machine} (rust=${ARCH_RUST} go=${ARCH_GO} mixed=${ARCH_MIXED})"
+}
+
 detect_pkg_manager() {
   if command -v apt &>/dev/null; then
     echo "apt"
@@ -268,7 +299,7 @@ install_fd() {
 
   local version
   version=$(curl -s https://api.github.com/repos/sharkdp/fd/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
-  local url="https://github.com/sharkdp/fd/releases/download/v${version}/fd-v${version}-x86_64-unknown-linux-gnu.tar.gz"
+  local url="https://github.com/sharkdp/fd/releases/download/v${version}/fd-v${version}-${ARCH_RUST}-unknown-linux-gnu.tar.gz"
   local tmp_dir
   tmp_dir=$(mktemp -d)
   log_verbose "fd version: ${version}"
@@ -297,7 +328,7 @@ install_bat() {
 
   local version
   version=$(curl -s https://api.github.com/repos/sharkdp/bat/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
-  local url="https://github.com/sharkdp/bat/releases/download/v${version}/bat-v${version}-x86_64-unknown-linux-gnu.tar.gz"
+  local url="https://github.com/sharkdp/bat/releases/download/v${version}/bat-v${version}-${ARCH_RUST}-unknown-linux-gnu.tar.gz"
   local tmp_dir
   tmp_dir=$(mktemp -d)
   log_verbose "bat version: ${version}"
@@ -326,7 +357,7 @@ install_lazygit() {
 
   local version
   version=$(curl -s https://api.github.com/repos/jesseduffield/lazygit/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
-  local url="https://github.com/jesseduffield/lazygit/releases/download/v${version}/lazygit_${version}_Linux_x86_64.tar.gz"
+  local url="https://github.com/jesseduffield/lazygit/releases/download/v${version}/lazygit_${version}_linux_${ARCH_MIXED}.tar.gz"
   local tmp_dir
   tmp_dir=$(mktemp -d)
   log_verbose "lazygit version: ${version}"
@@ -394,7 +425,7 @@ install_jj() {
 
   local version
   version=$(curl -s https://api.github.com/repos/jj-vcs/jj/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
-  local url="https://github.com/jj-vcs/jj/releases/download/v${version}/jj-v${version}-x86_64-unknown-linux-musl.tar.gz"
+  local url="https://github.com/jj-vcs/jj/releases/download/v${version}/jj-v${version}-${ARCH_RUST}-unknown-linux-musl.tar.gz"
   local tmp_dir
   tmp_dir=$(mktemp -d)
   log_verbose "jj version: ${version}"
@@ -427,7 +458,7 @@ install_jjui() {
 
   local version
   version=$(curl -s https://api.github.com/repos/idursun/jjui/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
-  local url="https://github.com/idursun/jjui/releases/download/v${version}/jjui-${version}-linux-amd64.zip"
+  local url="https://github.com/idursun/jjui/releases/download/v${version}/jjui-${version}-linux-${ARCH_GO}.zip"
   local tmp_dir
   tmp_dir=$(mktemp -d)
   log_verbose "jjui version: ${version}"
@@ -436,8 +467,8 @@ install_jjui() {
 
   if curl -fsSL "${url}" -o "${tmp_dir}/jjui.zip"; then
     unzip -q "${tmp_dir}/jjui.zip" -d "${tmp_dir}"
-    chmod +x "${tmp_dir}/jjui-${version}-linux-amd64"
-    sudo mv "${tmp_dir}/jjui-${version}-linux-amd64" /usr/local/bin/jjui
+    chmod +x "${tmp_dir}/jjui-${version}-linux-${ARCH_GO}"
+    sudo mv "${tmp_dir}/jjui-${version}-linux-${ARCH_GO}" /usr/local/bin/jjui
     rm -rf "${tmp_dir}"
     print_success "Installed jjui $(jjui --version)"
   else
@@ -457,7 +488,7 @@ install_yq() {
 
   local version
   version=$(curl -s https://api.github.com/repos/mikefarah/yq/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
-  local url="https://github.com/mikefarah/yq/releases/download/v${version}/yq_linux_amd64"
+  local url="https://github.com/mikefarah/yq/releases/download/v${version}/yq_linux_${ARCH_GO}"
   local tmp_dir
   tmp_dir=$(mktemp -d)
   log_verbose "yq version: ${version}"
@@ -485,7 +516,7 @@ install_eza() {
 
   print_info "Installing eza..."
 
-  local latest_url="https://github.com/eza-community/eza/releases/latest/download/eza_x86_64-unknown-linux-gnu.tar.gz"
+  local latest_url="https://github.com/eza-community/eza/releases/latest/download/eza_${ARCH_RUST}-unknown-linux-gnu.tar.gz"
   local tmp_dir
   tmp_dir=$(mktemp -d)
   log_verbose "Download URL: ${latest_url}"
@@ -534,7 +565,7 @@ install_nvim() {
     print_info "Current Neovim version: ${current_version}"
   fi
 
-  local latest_url="https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz"
+  local latest_url="https://github.com/neovim/neovim/releases/latest/download/nvim-linux-${ARCH_MIXED}.tar.gz"
   local tmp_dir
   tmp_dir=$(mktemp -d)
   log_verbose "Download URL: ${latest_url}"
@@ -545,7 +576,7 @@ install_nvim() {
     tar -xzf "${tmp_dir}/nvim.tar.gz" -C "${tmp_dir}"
     log_verbose "Installing to /opt/nvim"
     sudo rm -rf /opt/nvim
-    sudo mv "${tmp_dir}/nvim-linux-x86_64" /opt/nvim
+    sudo mv "${tmp_dir}/nvim-linux-${ARCH_MIXED}" /opt/nvim
     # Create symlink if not already on PATH via /opt/nvim/bin
     log_verbose "Creating symlink: /usr/local/bin/nvim -> /opt/nvim/bin/nvim"
     sudo ln -sf /opt/nvim/bin/nvim /usr/local/bin/nvim
@@ -792,6 +823,7 @@ main() {
   check_stow
 
   if [[ "${action}" == "install" ]]; then
+    detect_arch
     install_make
     install_node
   fi
