@@ -116,6 +116,17 @@ detect_pkg_manager() {
   fi
 }
 
+fetch_latest_tag() {
+  local repo="$1"
+  local tag
+  tag=$(curl -s "https://api.github.com/repos/${repo}/releases/latest" | grep -oP '"tag_name":\s*"v\K[^"]+' || true)
+  if [[ -z "${tag}" ]]; then
+    print_error "Failed to resolve latest release tag for ${repo} (GitHub API rate limit?)" >&2
+    return 1
+  fi
+  echo "${tag}"
+}
+
 install_stow() {
   print_info "Installing GNU Stow..."
 
@@ -298,7 +309,7 @@ install_fd() {
   print_info "Installing fd..."
 
   local version
-  version=$(curl -s https://api.github.com/repos/sharkdp/fd/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
+  version=$(fetch_latest_tag sharkdp/fd) || return 1
   local url="https://github.com/sharkdp/fd/releases/download/v${version}/fd-v${version}-${ARCH_RUST}-unknown-linux-gnu.tar.gz"
   local tmp_dir
   tmp_dir=$(mktemp -d)
@@ -327,7 +338,7 @@ install_bat() {
   print_info "Installing bat..."
 
   local version
-  version=$(curl -s https://api.github.com/repos/sharkdp/bat/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
+  version=$(fetch_latest_tag sharkdp/bat) || return 1
   local url="https://github.com/sharkdp/bat/releases/download/v${version}/bat-v${version}-${ARCH_RUST}-unknown-linux-gnu.tar.gz"
   local tmp_dir
   tmp_dir=$(mktemp -d)
@@ -356,7 +367,7 @@ install_lazygit() {
   print_info "Installing lazygit..."
 
   local version
-  version=$(curl -s https://api.github.com/repos/jesseduffield/lazygit/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
+  version=$(fetch_latest_tag jesseduffield/lazygit) || return 1
   local url="https://github.com/jesseduffield/lazygit/releases/download/v${version}/lazygit_${version}_linux_${ARCH_MIXED}.tar.gz"
   local tmp_dir
   tmp_dir=$(mktemp -d)
@@ -424,7 +435,7 @@ install_jj() {
   print_info "Installing jj (Jujutsu)..."
 
   local version
-  version=$(curl -s https://api.github.com/repos/jj-vcs/jj/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
+  version=$(fetch_latest_tag jj-vcs/jj) || return 1
   local url="https://github.com/jj-vcs/jj/releases/download/v${version}/jj-v${version}-${ARCH_RUST}-unknown-linux-musl.tar.gz"
   local tmp_dir
   tmp_dir=$(mktemp -d)
@@ -457,7 +468,7 @@ install_jjui() {
   fi
 
   local version
-  version=$(curl -s https://api.github.com/repos/idursun/jjui/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
+  version=$(fetch_latest_tag idursun/jjui) || return 1
   local url="https://github.com/idursun/jjui/releases/download/v${version}/jjui-${version}-linux-${ARCH_GO}.zip"
   local tmp_dir
   tmp_dir=$(mktemp -d)
@@ -487,7 +498,7 @@ install_yq() {
   print_info "Installing yq..."
 
   local version
-  version=$(curl -s https://api.github.com/repos/mikefarah/yq/releases/latest | grep -oP '"tag_name":\s*"v\K[^"]+')
+  version=$(fetch_latest_tag mikefarah/yq) || return 1
   local url="https://github.com/mikefarah/yq/releases/download/v${version}/yq_linux_${ARCH_GO}"
   local tmp_dir
   tmp_dir=$(mktemp -d)
