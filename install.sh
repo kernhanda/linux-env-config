@@ -862,11 +862,11 @@ main() {
   if [[ "${action}" == "install" ]]; then
     for pkg in "${selected_packages[@]}"; do
       if [[ "${pkg}" == "zsh" ]]; then
-        install_fd
-        install_bat
-        install_eza
-        install_lazygit
-        install_yq
+        install_fd || true
+        install_bat || true
+        install_eza || true
+        install_lazygit || true
+        install_yq || true
         break
       fi
     done
@@ -897,7 +897,7 @@ main() {
   if [[ "${action}" == "install" ]]; then
     for pkg in "${selected_packages[@]}"; do
       if [[ "${pkg}" == "nvim" ]]; then
-        install_nvim
+        install_nvim || true
         break
       fi
     done
@@ -907,7 +907,7 @@ main() {
   if [[ "${action}" == "install" ]]; then
     for pkg in "${selected_packages[@]}"; do
       if [[ "${pkg}" == "gh" ]]; then
-        install_gh
+        install_gh || true
         break
       fi
     done
@@ -917,8 +917,8 @@ main() {
   if [[ "${action}" == "install" ]]; then
     for pkg in "${selected_packages[@]}"; do
       if [[ "${pkg}" == "jj" ]]; then
-        install_jj
-        install_jjui
+        install_jj || true
+        install_jjui || true
         break
       fi
     done
