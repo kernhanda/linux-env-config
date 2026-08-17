@@ -198,6 +198,20 @@ if [[ -z "$TMUX" ]]; then
   TERM="xterm-256color"
 fi
 
+# In a nested tmux the inner session should drive by default; F12 grabs the host
+# back. -t 1 keeps this out of `ssh host cmd` and scp-style non-interactive use.
+# Self-healing: F12 restores host mode even if the second call never runs.
+ssh() {
+  if [[ -n "$TMUX" && -t 1 ]]; then
+    tmux pass-mode 2>/dev/null
+    command ssh "$@"
+    local rc=$?
+    tmux host-mode 2>/dev/null
+    return $rc
+  fi
+  command ssh "$@"
+}
+
 # Start a dev session layout in current directory
 ds() {
     local current_dir=$(pwd)
