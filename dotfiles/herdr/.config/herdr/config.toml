@@ -1,0 +1,7 @@
+# herdr configuration. Full reference: `herdr --default-config`.
+
+[terminal]
+# Spawn zsh directly. Reaching zsh via $SHELL (bash) leaves it a child of the
+# pane's shell, and `herdr agent start` then rejects the pane as
+# agent_pane_busy because the foreground pid is not the pane's own shell.
+default_shell = "zsh"
