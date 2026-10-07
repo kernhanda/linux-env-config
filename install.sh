@@ -518,6 +518,35 @@ install_yq() {
   fi
 }
 
+install_shellcheck() {
+  if command -v shellcheck &>/dev/null; then
+    print_info "shellcheck already installed: $(shellcheck --version | sed -n 's/^version: //p')"
+    return 0
+  fi
+
+  print_info "Installing shellcheck..."
+
+  local version
+  version=$(fetch_latest_tag koalaman/shellcheck) || return 1
+  local url="https://github.com/koalaman/shellcheck/releases/download/v${version}/shellcheck-v${version}.linux.${ARCH_RUST}.tar.xz"
+  local tmp_dir
+  tmp_dir=$(mktemp -d)
+  log_verbose "shellcheck version: ${version}"
+  log_verbose "Download URL: ${url}"
+  log_verbose "Temp dir: ${tmp_dir}"
+
+  if curl -fsSL "${url}" -o "${tmp_dir}/shellcheck.tar.xz"; then
+    tar -xJf "${tmp_dir}/shellcheck.tar.xz" -C "${tmp_dir}"
+    sudo mv "${tmp_dir}/shellcheck-v${version}/shellcheck" /usr/local/bin/shellcheck
+    rm -rf "${tmp_dir}"
+    print_success "Installed shellcheck $(shellcheck --version | sed -n 's/^version: //p')"
+  else
+    rm -rf "${tmp_dir}"
+    print_error "Failed to download shellcheck"
+    return 1
+  fi
+}
+
 
 install_eza() {
   if command -v eza &>/dev/null; then
@@ -867,6 +896,7 @@ main() {
         install_eza || true
         install_lazygit || true
         install_yq || true
+        install_shellcheck || true
         break
       fi
     done
