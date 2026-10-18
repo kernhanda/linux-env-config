@@ -706,6 +706,27 @@ install_node() {
 }
 
 
+install_herdr() {
+  # The installer writes to ~/.local/bin, which may not be on PATH yet.
+  local herdr_bin="${HOME}/.local/bin/herdr"
+
+  if command -v herdr &>/dev/null || [[ -x "${herdr_bin}" ]]; then
+    print_info "herdr already installed"
+    return 0
+  fi
+
+  print_info "Installing herdr..."
+
+  log_verbose "Running: curl -fsSL https://herdr.dev/install.sh | sh"
+  curl -fsSL https://herdr.dev/install.sh | sh
+  if [[ -x "${herdr_bin}" ]]; then
+    print_success "Installed herdr $("${herdr_bin}" --version 2>/dev/null || echo '')"
+  else
+    print_error "Failed to install herdr"
+    return 1
+  fi
+}
+
 install_tpm() {
   print_info "Setting up TPM (Tmux Plugin Manager)..."
 
@@ -924,6 +945,16 @@ main() {
       if [[ "${pkg}" == "tmux" ]]; then
         install_tmux
         install_tpm
+        break
+      fi
+    done
+  fi
+
+  # Install herdr if installing herdr package
+  if [[ "${action}" == "install" ]]; then
+    for pkg in "${selected_packages[@]}"; do
+      if [[ "${pkg}" == "herdr" ]]; then
+        install_herdr || true
         break
       fi
     done
