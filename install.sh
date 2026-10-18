@@ -385,7 +385,35 @@ install_lazygit() {
   fi
 }
 
+add_gh_apt_repo() {
+  local keyring=/etc/apt/keyrings/githubcli-archive-keyring.gpg
+  local out
+  out=$(mktemp)
+
+  log_verbose "Refreshing GitHub CLI apt keyring: ${keyring}"
+  if ! curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg -o "${out}"; then
+    rm -f "${out}"
+    print_error "Failed to download the GitHub CLI apt keyring"
+    return 1
+  fi
+  sudo mkdir -p -m 755 /etc/apt/keyrings /etc/apt/sources.list.d
+  sudo install -m 644 "${out}" "${keyring}"
+  rm -f "${out}"
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=${keyring}] https://cli.github.com/packages stable main" \
+    | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+}
+
 install_gh() {
+  local mgr
+  mgr=$(detect_pkg_manager)
+  log_verbose "Detected package manager: ${mgr:-none}"
+
+  # The repo's signing key rotates, and a stale keyring breaks `apt update`,
+  # so refresh it even when gh is already installed.
+  if [[ "${mgr}" == "apt" ]]; then
+    add_gh_apt_repo || return 1
+  fi
+
   if command -v gh &>/dev/null; then
     print_info "gh already installed: $(gh --version | head -1)"
     return 0
@@ -393,19 +421,9 @@ install_gh() {
 
   print_info "Installing GitHub CLI (gh)..."
 
-  local mgr
-  mgr=$(detect_pkg_manager)
-  log_verbose "Detected package manager: ${mgr:-none}"
-
   if [[ "${mgr}" == "brew" ]]; then
     brew install gh
   elif [[ "${mgr}" == "apt" ]]; then
-    sudo mkdir -p -m 755 /etc/apt/keyrings
-    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg \
-      | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null
-    sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" \
-      | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
     sudo apt update && sudo apt install -y gh
   elif [[ "${mgr}" == "pacman" ]]; then
     sudo pacman -S --noconfirm github-cli
