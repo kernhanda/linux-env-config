@@ -653,8 +653,8 @@ install_node() {
   else
     local node_major
     node_major=$(node -v | grep -oP 'v\K[0-9]+')
-    if (( node_major < 18 )); then
-      print_info "Node.js v${node_major} is too old (need >= 18), upgrading..."
+    if (( node_major < 22 )); then
+      print_info "Node.js v${node_major} is too old (need >= 22), upgrading..."
       need_install=true
     elif ! npm --version &>/dev/null; then
       print_info "Node.js $(node -v) found but npm is broken, reinstalling..."
