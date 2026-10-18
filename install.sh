@@ -259,22 +259,20 @@ install_omz() {
     print_success "Updated oh-my-zsh"
   fi
 
-  # Clone or update Powerlevel10k.
+  # Clone or update Powerlevel10k. Track master: the last release tag predates
+  # years of gitstatus updates.
   THEME_REPO_URL="https://github.com/romkatv/powerlevel10k"
   THEME_PATH="${ZSH_CUSTOM}/themes/${THEME_REPO_URL##*/}"
-  THEME_VERSION_TAG="master"
-  if command -v jq &>/dev/null; then
-    THEME_VERSION_TAG=$(curl -s https://api.github.com/repos/romkatv/powerlevel10k/releases/latest | jq -r .tag_name)
-  fi
-  log_verbose "Powerlevel10k version: ${THEME_VERSION_TAG}, path: ${THEME_PATH}"
+  log_verbose "Powerlevel10k path: ${THEME_PATH}"
   if [[ ! -d "${THEME_PATH}" ]]; then
     log_verbose "Cloning powerlevel10k from ${THEME_REPO_URL}"
-    git clone --quiet --filter=blob:none --branch "${THEME_VERSION_TAG}" "${THEME_REPO_URL}" "${THEME_PATH}"
+    git clone --quiet --filter=blob:none "${THEME_REPO_URL}" "${THEME_PATH}"
     print_success "Installed powerlevel10k"
   else
     log_verbose "Updating existing powerlevel10k at ${THEME_PATH}"
-    git -C "${THEME_PATH}" fetch --quiet
-    git -C "${THEME_PATH}" checkout "${THEME_VERSION_TAG}" --quiet
+    # -B moves checkouts detached at a release tag onto master.
+    git -C "${THEME_PATH}" fetch --quiet origin master
+    git -C "${THEME_PATH}" checkout --quiet -B master origin/master
     print_success "Updated powerlevel10k"
   fi
 
