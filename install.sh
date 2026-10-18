@@ -251,7 +251,7 @@ install_omz() {
   log_verbose "ZSH_CUSTOM dir: ${ZSH_CUSTOM}"
   if [[ ! -d "${ZSH}" ]]; then
     log_verbose "Cloning oh-my-zsh into ${ZSH}"
-    git clone --quiet --filter=blob:none https://github.com/robbyrussell/oh-my-zsh "${ZSH}"
+    git clone --quiet --filter=blob:none https://github.com/ohmyzsh/ohmyzsh.git "${ZSH}"
     print_success "Installed oh-my-zsh"
   else
     log_verbose "Updating existing oh-my-zsh at ${ZSH}"
