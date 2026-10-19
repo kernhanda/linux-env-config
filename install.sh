@@ -385,6 +385,35 @@ install_lazygit() {
   fi
 }
 
+install_git() {
+  local mgr
+  mgr=$(detect_pkg_manager)
+  log_verbose "Detected package manager: ${mgr:-none}"
+
+  # Ubuntu's archive git lags upstream by years. The git-core PPA tracks the
+  # latest release, so upgrade from it even when git is already installed.
+  if [[ "${mgr}" == "apt" ]] && grep -qE '^ID(_LIKE)?=.*\bubuntu\b' /etc/os-release 2>/dev/null; then
+    if ! grep -rqs 'git-core/ppa' /etc/apt/sources.list /etc/apt/sources.list.d/; then
+      print_info "Adding the git-core PPA..."
+      command -v add-apt-repository &>/dev/null || pkg_install software-properties-common
+      sudo add-apt-repository -y -n ppa:git-core/ppa
+    fi
+  elif command -v git &>/dev/null; then
+    print_info "git already installed: $(git --version)"
+    return 0
+  fi
+
+  print_info "Installing git..."
+  pkg_install git
+
+  if command -v git &>/dev/null; then
+    print_success "Installed $(git --version)"
+  else
+    print_error "Failed to install git"
+    return 1
+  fi
+}
+
 add_gh_apt_repo() {
   local keyring=/etc/apt/keyrings/githubcli-archive-keyring.gpg
   local out
@@ -975,6 +1004,16 @@ main() {
     for pkg in "${selected_packages[@]}"; do
       if [[ "${pkg}" == "nvim" ]]; then
         install_nvim || true
+        break
+      fi
+    done
+  fi
+
+  # Install the latest git if installing git package
+  if [[ "${action}" == "install" ]]; then
+    for pkg in "${selected_packages[@]}"; do
+      if [[ "${pkg}" == "git" ]]; then
+        install_git || true
         break
       fi
     done
