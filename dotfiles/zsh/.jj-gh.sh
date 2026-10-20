@@ -4,23 +4,28 @@
 # `gh` therefore can't infer --head from a current branch. Branch names come
 # from jj's own `templates.git_push_bookmark`, so they track that config.
 #
-#   jpr [TOP] [-d|--draft] [-y|--yes] [--base BRANCH] [--no-footer] [--no-footer-for REVSET] [--no-reuse] [--no-stack]
-#       Create/refresh one draft PR per non-empty change in (trunk()..TOP)
+#   jpr [TOP] [-d|--draft] [-y|--yes] [--base BRANCH[@REMOTE]] [--no-footer] [--no-footer-for REVSET] [--no-reuse] [--no-stack]
+#       Create/refresh one draft PR per non-empty change in (BASE..TOP)
 #       (default TOP=@). Each PR is based on its *actual* parent: a change's
 #       base is the branch of its nearest ancestor that is itself a pushable
-#       change in the range, or the trunk branch (--base / JPR_BASE, default
-#       main) when it has no such ancestor. So a linear stack chains, and
-#       parallel branches each target trunk — e.g. three sibling changes joined
-#       by an empty merge produce three independent PRs against main, not a fake
-#       linear chain. Empty changes (the working copy, merge nodes) and changes
-#       with no description set are dropped, so a lone real change just makes one
-#       PR. Every run resyncs each PR's
-#       title and body from its jj change description, so re-running after
+#       change in the range, or the base branch when it has no such ancestor.
+#       So a linear stack chains, and parallel branches each target the base —
+#       e.g. three sibling changes joined by an empty merge produce three
+#       independent PRs against main, not a fake linear chain. Empty changes
+#       (the working copy, merge nodes) and changes with no description set are
+#       dropped, so a lone real change just makes one PR. Every run resyncs each
+#       PR's title and body from its jj change description, so re-running after
 #       `jj describe` keeps the PR text current (jpr owns the description; edits
 #       made on GitHub are overwritten). With 2+ changes outside a GitHub stack
 #       (below), their PR bodies are then annotated with the relationship map
 #       (a stack when changes chain, a related-PR group when they are
 #       independent).
+#
+#       --base (JPR_BASE) bounds the range as well as naming the base branch,
+#       so a stack on a feature branch covers only the changes above it. BRANCH
+#       resolves to its push-remote bookmark, else the local one; BRANCH@REMOTE
+#       is used as given and stripped to BRANCH for GitHub. Unset, the base
+#       branch is main and the range starts at trunk().
 #
 #       --no-footer (JPR_NO_FOOTER=1) suppresses this relationship map entirely;
 #       bodies then carry only the change description, and any map left by a
@@ -63,7 +68,7 @@
 # (unless -d), so reviewers get at most one notification per PR. Final state
 # defaults to ready; export
 # JPR_DRAFT=1 to default to draft (matches the "all PRs are drafts" house rule).
-# JPR_BASE overrides the trunk base branch (default main). JPR_KEEP_READY=1
+# JPR_BASE sets a default --base. JPR_KEEP_READY=1
 # leaves already-ready PRs alone instead of force-drafting them during edits.
 # JPR_NO_FOOTER=1 defaults --no-footer on; JPR_NO_FOOTER_FOR sets a default
 # --no-footer-for revset. JPR_NO_STACK=1 defaults --no-stack on. Written to run
@@ -99,8 +104,8 @@ _jpr_unstack() {
 }
 
 jpr() {
-  local top="@" want_draft="${JPR_DRAFT:-0}" base="${JPR_BASE:-main}" assume_yes="${JPR_YES:-0}" \
-        no_footer="${JPR_NO_FOOTER:-0}" no_footer_for="${JPR_NO_FOOTER_FOR:-}" no_reuse="${JPR_NO_REUSE:-0}" \
+  local top="@" want_draft="${JPR_DRAFT:-0}" base="${JPR_BASE:-}" base_rev="trunk()" remote \
+        assume_yes="${JPR_YES:-0}" no_footer="${JPR_NO_FOOTER:-0}" no_footer_for="${JPR_NO_FOOTER_FOR:-}" no_reuse="${JPR_NO_REUSE:-0}" \
         no_stack="${JPR_NO_STACK:-0}"
   while [ $# -gt 0 ]; do
     case "$1" in
@@ -113,20 +118,34 @@ jpr() {
       --no-footer-for=*) no_footer_for="${1#--no-footer-for=}" ;;
       --no-reuse)  no_reuse=1 ;;
       --no-stack)  no_stack=1 ;;
-      -h|--help)   echo "usage: jpr [TOP] [-d|--draft] [-y|--yes] [--base BRANCH] [--no-footer] [--no-footer-for REVSET] [--no-reuse] [--no-stack]"; return 0 ;;
+      -h|--help)   echo "usage: jpr [TOP] [-d|--draft] [-y|--yes] [--base BRANCH[@REMOTE]] [--no-footer] [--no-footer-for REVSET] [--no-reuse] [--no-stack]"; return 0 ;;
       -*)          echo "jpr: unknown option: $1" >&2; return 2 ;;
       *)           top="$1" ;;
     esac
     shift
   done
 
-  # `base` is the trunk branch and is never reassigned: each change computes its
+  if [ -z "$base" ]; then
+    base=main
+  else
+    case "$base" in
+      *@*) base_rev=$base; base=${base%@*} ;;
+      *)   remote=$(jj config get git.push 2>/dev/null) || remote=origin
+           base_rev="coalesce(remote_bookmarks(exact:\"$base\", exact:\"$remote\"), bookmarks(exact:\"$base\"))" ;;
+    esac
+    if [ -z "$(jj log --no-graph --no-pager -r "$base_rev" -T '"x"' 2>/dev/null)" ]; then
+      echo "jpr: base does not resolve: $base_rev" >&2
+      return 2
+    fi
+  fi
+
+  # `base` is the base branch and is never reassigned: each change computes its
   # own base from its parent, so it must not leak into the next iteration.
   # `description("")` is jj's special-case for "no description set", so the range
   # also drops undescribed changes — there's nothing to title/body a PR with, and
   # `jj git push` refuses them anyway. A child whose nearest in-range ancestor is
   # undescribed re-points its base past it, exactly as for empty changes.
-  local range="(trunk()..$top) ~ empty() ~ description(\"\")" tmpl
+  local range="(($base_rev)..$top) ~ empty() ~ description(\"\")" tmpl
   local tab=$'\t' nl=$'\n'
   tmpl=$(jj config get templates.git_push_bookmark)
 
@@ -325,7 +344,7 @@ jpr() {
   # PREVIEW + CONFIRM, before anything touches the remote.
   if [ "$want_draft" -eq 1 ]; then fstate="draft"; else fstate="ready for review"; fi
   {
-    printf 'jpr plan — top=%s, trunk base=%s, final state=%s\n' "$top" "$base" "$fstate"
+    printf 'jpr plan — top=%s, base=%s, final state=%s\n' "$top" "$base" "$fstate"
     printf 'push %d branch(es), then create/update %d PR(s):\n' "${#plan[@]}" "${#plan[@]}"
     if [ "$no_footer" -eq 1 ]; then
       printf 'footer: suppressed (--no-footer)\n'
