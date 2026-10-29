@@ -10,10 +10,10 @@ default_shell = "zsh"
 
 [keys]
 # Prefix-free ctrl+alt chords; the prefix bindings keep working alongside.
-focus_pane_left   = ["prefix+h", "ctrl+alt+h"]
+focus_pane_left   = ["ctrl+alt+h"]
 focus_pane_down   = ["prefix+j", "ctrl+alt+j"]
 focus_pane_up     = ["prefix+k", "ctrl+alt+k"]
-focus_pane_right  = ["prefix+l", "ctrl+alt+l"]
+focus_pane_right  = ["ctrl+alt+l"]
 previous_tab      = ["prefix+p", "ctrl+alt+["]
 next_tab          = ["prefix+n", "ctrl+alt+]"]
 new_tab           = ["prefix+c", "ctrl+alt+c"]
@@ -33,3 +33,17 @@ sidebar_collapsed_mode = "hidden"
 [ui.sound]
 # Headless EC2 host: no audio players, every state-change sound fails.
 enabled = false
+
+# prefix+h / prefix+l wrap at the tab edges; the ctrl+alt chords stay
+# unwrapped.
+[[keys.command]]
+key = "prefix+h"
+type = "shell"
+command = '$HOME/.config/herdr/scripts/pane-wrap.sh left'
+description = "focus pane left (wraps)"
+
+[[keys.command]]
+key = "prefix+l"
+type = "shell"
+command = '$HOME/.config/herdr/scripts/pane-wrap.sh right'
+description = "focus pane right (wraps)"
