@@ -1,0 +1,31 @@
+# herdr configuration. Full reference: `herdr --default-config`.
+
+onboarding = false
+
+[terminal]
+# Spawn zsh directly. Reaching zsh via $SHELL (bash) leaves it a child of the
+# pane's shell, and `herdr agent start` then rejects the pane as
+# agent_pane_busy because the foreground pid is not the pane's own shell.
+default_shell = "zsh"
+
+[keys]
+# Prefix-free ctrl+alt chords; the prefix bindings keep working alongside.
+focus_pane_left   = ["prefix+h", "ctrl+alt+h"]
+focus_pane_down   = ["prefix+j", "ctrl+alt+j"]
+focus_pane_up     = ["prefix+k", "ctrl+alt+k"]
+focus_pane_right  = ["prefix+l", "ctrl+alt+l"]
+previous_tab      = ["prefix+p", "ctrl+alt+["]
+next_tab          = ["prefix+n", "ctrl+alt+]"]
+new_tab           = ["prefix+c", "ctrl+alt+c"]
+split_vertical    = ["prefix+v", "ctrl+alt+d"]
+split_horizontal  = ["prefix+minus", "ctrl+alt+shift+d"]
+zoom              = ["prefix+z", "ctrl+alt+z"]
+
+[ui]
+mouse_capture = false
+sidebar_start_collapsed = true
+sidebar_collapsed_mode = "hidden"
+
+[ui.sound]
+# Headless EC2 host: no audio players, every state-change sound fails.
+enabled = false
