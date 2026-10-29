@@ -20,6 +20,10 @@ new_tab           = ["prefix+c", "ctrl+alt+c"]
 split_vertical    = ["prefix+v", "ctrl+alt+d"]
 split_horizontal  = ["prefix+minus", "ctrl+alt+shift+d"]
 zoom              = ["prefix+z", "ctrl+alt+z"]
+# Agent cycling follows the agent panel's ordering.
+previous_agent = "prefix+shift+a"
+next_agent     = "prefix+a"
+focus_agent    = "prefix+alt+1..9"
 
 [ui]
 mouse_capture = false
