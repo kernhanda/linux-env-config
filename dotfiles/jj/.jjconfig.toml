@@ -75,5 +75,6 @@ fg = "#f38ba8"
 underline = false
 
 [merge-tools.wdiff]
-program = "/home/ubuntu/work/dotfiles/dotfiles/jj/wdiff-linenum.sh"
-diff-args = ["$left","$right"]
+# jj doesn't expand ~ or env vars in program; stow links the script into $HOME.
+program = "sh"
+diff-args = ["-c", 'exec "$HOME/wdiff-linenum.sh" "$0" "$1"', "$left", "$right"]
