@@ -26,6 +26,13 @@ previous_agent = "prefix+shift+a"
 next_agent     = "prefix+a"
 focus_agent    = "prefix+alt+1..9"
 
+# herdr-navigator: fuzzy jump over workspaces, agents, sessions, and actions.
+[[keys.command]]
+key = "prefix+t"
+type = "plugin_action"
+command = "herdr-navigator.open"
+description = "jump to anything"
+
 [ui]
 mouse_capture = false
 sidebar_start_collapsed = true
