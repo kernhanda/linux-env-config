@@ -17,6 +17,7 @@ focus_pane_right  = ["prefix+l", "ctrl+alt+l"]
 previous_tab      = ["prefix+p", "ctrl+alt+["]
 next_tab          = ["prefix+n", "ctrl+alt+]"]
 new_tab           = ["prefix+c", "ctrl+alt+c"]
+rename_tab        = "prefix+shift+t"
 split_vertical    = ["prefix+\\", "ctrl+alt+d"]
 split_horizontal  = ["prefix+minus", "ctrl+alt+shift+d"]
 zoom              = ["prefix+z", "ctrl+alt+z"]
@@ -29,6 +30,7 @@ focus_agent    = "prefix+alt+1..9"
 mouse_capture = false
 sidebar_start_collapsed = true
 sidebar_collapsed_mode = "hidden"
+prompt_new_tab_name = false
 
 [ui.sound]
 # Headless EC2 host: no audio players, every state-change sound fails.
