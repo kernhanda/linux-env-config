@@ -1,0 +1,24 @@
+id = "wt-spaces"
+name = "WT Spaces"
+version = "0.1.0"
+min_herdr_version = "0.9.1"
+description = "Create wt worktree spaces as Herdr workspaces; closing the workspace removes the tree, unless it has unpushed commits."
+platforms = ["linux", "macos"]
+
+[[actions]]
+id = "new"
+title = "WT: new worktree space"
+contexts = ["workspace", "global"]
+command = ["bash", "bin/open-new-space.sh"]
+
+[[panes]]
+id = "new"
+title = "New wt space"
+placement = "popup"
+width = "80%"
+height = 30
+command = ["bash", "bin/new-space.sh"]
+
+[[events]]
+on = "workspace.closed"
+command = ["bash", "bin/on-workspace-closed.sh"]

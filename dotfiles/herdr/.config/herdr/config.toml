@@ -33,6 +33,15 @@ type = "plugin_action"
 command = "herdr-navigator.open"
 description = "jump to anything"
 
+# wt-spaces: prompt for a name, create the wt worktree space for the
+# workspace.yaml 'herdr' group, and open it as a workspace. Closing that
+# workspace removes the tree; unpushed commits are kept and reported.
+[[keys.command]]
+key = "ctrl+alt+n"
+type = "plugin_action"
+command = "wt-spaces.new"
+description = "new wt worktree space"
+
 [ui]
 mouse_capture = true
 sidebar_start_collapsed = true
