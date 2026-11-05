@@ -1,0 +1,12 @@
+# kitty opens floating and centered; $mod+m toggles it between maximized and centered.
+for_window [class="kitty"] floating enable, resize set 50 ppt 90 ppt, move position center
+bindsym $mod+m exec --no-startup-id ~/.config/regolith3/scripts/float-max-toggle
+
+# Caps is Ctrl via xkb (ctrl:nocaps); xcape makes a lone tap send Escape.
+exec --no-startup-id sh -c 'command -v xcape >/dev/null && exec xcape -e "Control_L=Escape"'
+
+# Single-modifier shortcuts for actions Regolith puts behind Shift/Ctrl.
+bindsym $mod+s exec --no-startup-id $wm.program.launcher.window -t $ilia.stylesheet
+bindsym $mod+semicolon focus mode_toggle
+bindsym $mod+o scratchpad show
+bindsym $mod+comma floating toggle

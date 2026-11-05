@@ -1,0 +1,12 @@
+regolith.look.path: /usr/share/regolith-look/lascaille
+
+wm.program.terminal: /home/kern/.local/bin/kitty
+
+wm.gaps.focus_follows_mouse: no
+wm.gaps.inner.size: 6
+wm.gaps.outer.size: 0
+wm.window.border.size: 2
+wm.floatingwindow.border.size: 2
+
+gtk.monospace_font_name: JetBrains Mono 12
+wm.bar.font: JetBrains Mono 12

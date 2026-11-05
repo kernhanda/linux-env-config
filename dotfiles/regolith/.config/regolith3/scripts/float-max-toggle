@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Toggle the focused window between filling the workspace and a centered float.
+set -euo pipefail
+
+ws=$(i3-msg -t get_workspaces | jq -c '.[] | select(.focused) | .rect')
+# Floating windows sit inside a floating_con; its rect is the outer frame.
+win=$(i3-msg -t get_tree | jq -c '
+  [.. | objects | select(.type == "floating_con")
+      | select(any(.nodes[]; .focused)) | .rect] | first // empty')
+
+read -r wx wy ww wh < <(jq -r '"\(.x) \(.y) \(.width) \(.height)"' <<<"$ws")
+
+if [[ -n $win ]] && (( $(jq .width <<<"$win") >= ww - 20 )); then
+  i3-msg -q 'resize set 50 ppt 90 ppt, move position center'
+else
+  i3-msg -q "floating enable, resize set $ww px $wh px, move absolute position $wx px $wy px"
+fi
