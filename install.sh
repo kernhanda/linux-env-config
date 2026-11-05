@@ -9,7 +9,9 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DOTFILES_DIR="${SCRIPT_DIR}/dotfiles"
 
 # Package definitions
-PACKAGES_ALL=(zsh tmux vim git gh nvim ripgrep editorconfig jj regolith)
+PACKAGES_ALL=(zsh tmux vim git gh nvim ripgrep editorconfig jj)
+# Installed only when named explicitly, e.g. `./install.sh regolith`.
+PACKAGES_OPTIONAL=(regolith)
 PACKAGES_MINIMAL=(zsh vim git)
 
 # Default to all packages
@@ -41,6 +43,7 @@ PROFILES:
 
 PACKAGES:
   ${PACKAGES_ALL[*]}
+  opt-in: ${PACKAGES_OPTIONAL[*]}
 
 If no packages specified, the full profile will be installed.
 
@@ -814,7 +817,7 @@ stow_package() {
 
 list_packages() {
   echo "Available packages:"
-  for pkg in "${PACKAGES_ALL[@]}"; do
+  for pkg in "${PACKAGES_ALL[@]}" "${PACKAGES_OPTIONAL[@]}"; do
     if [[ -d "${DOTFILES_DIR}/${pkg}" ]]; then
       local marker=""
       # Mark minimal packages
@@ -823,6 +826,9 @@ list_packages() {
           marker=" (minimal)"
           break
         fi
+      done
+      for opt_pkg in "${PACKAGES_OPTIONAL[@]}"; do
+        [[ "$pkg" == "$opt_pkg" ]] && marker=" (opt-in)"
       done
       echo "  - ${pkg}${marker}"
     fi
