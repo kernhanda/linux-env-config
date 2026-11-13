@@ -7,3 +7,44 @@ bindsym $mod+s exec --no-startup-id $wm.program.launcher.window -t $ilia.stylesh
 bindsym $mod+semicolon focus mode_toggle
 bindsym $mod+o scratchpad show
 bindsym $mod+comma floating toggle
+
+# Caps Lock is its own modifier ($caps, Mod3) for the Super+Shift chords.
+# Caps moves things; Caps+Super moves further (follow, other output).
+set $caps Mod3
+exec_always --no-startup-id ~/.config/regolith3/scripts/caps-hyper
+
+bindsym $caps+h move left
+bindsym $caps+j move down
+bindsym $caps+k move up
+bindsym $caps+l move right
+bindsym $caps+$mod+h move workspace to output left
+bindsym $caps+$mod+j move workspace to output down
+bindsym $caps+$mod+k move workspace to output up
+bindsym $caps+$mod+l move workspace to output right
+
+bindsym $caps+1 move container to workspace number 1
+bindsym $caps+2 move container to workspace number 2
+bindsym $caps+3 move container to workspace number 3
+bindsym $caps+4 move container to workspace number 4
+bindsym $caps+5 move container to workspace number 5
+bindsym $caps+6 move container to workspace number 6
+bindsym $caps+7 move container to workspace number 7
+bindsym $caps+8 move container to workspace number 8
+bindsym $caps+9 move container to workspace number 9
+bindsym $caps+0 move container to workspace number 10
+bindsym $caps+$mod+1 move container to workspace number 1; workspace number 1
+bindsym $caps+$mod+2 move container to workspace number 2; workspace number 2
+bindsym $caps+$mod+3 move container to workspace number 3; workspace number 3
+bindsym $caps+$mod+4 move container to workspace number 4; workspace number 4
+bindsym $caps+$mod+5 move container to workspace number 5; workspace number 5
+bindsym $caps+$mod+6 move container to workspace number 6; workspace number 6
+bindsym $caps+$mod+7 move container to workspace number 7; workspace number 7
+bindsym $caps+$mod+8 move container to workspace number 8; workspace number 8
+bindsym $caps+$mod+9 move container to workspace number 9; workspace number 9
+bindsym $caps+$mod+0 move container to workspace number 10; workspace number 10
+
+bindsym $caps+Tab workspace prev
+bindsym $caps+q [con_id="__focused__"] kill
+bindsym $caps+f floating toggle
+bindsym $caps+space exec --no-startup-id $wm.program.launcher.cmd -t $ilia.stylesheet
+bindsym $caps+Return exec --no-startup-id systemd-run --user --scope $wm.program.browser
