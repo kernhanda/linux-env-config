@@ -1,0 +1,14 @@
+# Swap Caps Lock and Left Ctrl at the scancode level. With the xkb option
+# ctrl:swapcaps_hyper on top, physical Caps is Hyper on Mod3 and physical
+# Left Ctrl is Ctrl.
+
+# Built-in laptop keyboards
+evdev:atkbd:*
+ KEYBOARD_KEY_3a=leftctrl
+ KEYBOARD_KEY_1d=capslock
+
+# USB and Bluetooth keyboards
+evdev:input:b0003*
+evdev:input:b0005*
+ KEYBOARD_KEY_70039=leftctrl
+ KEYBOARD_KEY_700e0=capslock

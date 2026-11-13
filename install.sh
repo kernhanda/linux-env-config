@@ -762,6 +762,18 @@ install_tpm() {
   print_success "Installed tmux plugins"
 }
 
+install_regolith_keyboard() {
+  local hwdb=/etc/udev/hwdb.d/90-caps-lctrl-swap.hwdb
+  if ! cmp -s "${SCRIPT_DIR}/system/udev/90-caps-lctrl-swap.hwdb" "${hwdb}"; then
+    log_verbose "Running: sudo install ${hwdb} && systemd-hwdb update && udevadm trigger"
+    sudo install -D -m 644 "${SCRIPT_DIR}/system/udev/90-caps-lctrl-swap.hwdb" "${hwdb}"
+    sudo systemd-hwdb update
+    sudo udevadm trigger --subsystem-match=input --action=change
+  fi
+  gsettings set org.gnome.desktop.input-sources xkb-options "['ctrl:swapcaps_hyper']"
+  print_success "Mapped Caps Lock to Hyper (Mod3)"
+}
+
 stow_package() {
   local package=$1
   local action=$2
@@ -1009,6 +1021,15 @@ main() {
       if [[ "${pkg}" == "jj" ]]; then
         install_jj || true
         install_jjui || true
+        break
+      fi
+    done
+  fi
+
+  if [[ "${action}" == "install" ]]; then
+    for pkg in "${selected_packages[@]}"; do
+      if [[ "${pkg}" == "regolith" ]]; then
+        install_regolith_keyboard || true
         break
       fi
     done

@@ -1,8 +1,0 @@
-#!/bin/sh
-# Caps Lock as Hyper_L on Mod3, a modifier no other key or app uses.
-# Separate calls: xmodmap batches every -e into one modifier-map request,
-# and the server rejects Hyper_L on Mod3 while it is still on Mod4.
-xmodmap -e 'keycode 66 = Hyper_L'
-xmodmap -e 'remove control = Hyper_L' 2>/dev/null
-xmodmap -e 'remove mod4 = Hyper_L' 2>/dev/null
-xmodmap -e 'add mod3 = Hyper_L'

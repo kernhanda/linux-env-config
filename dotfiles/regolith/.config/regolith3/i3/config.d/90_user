@@ -8,10 +8,10 @@ bindsym $mod+semicolon focus mode_toggle
 bindsym $mod+o scratchpad show
 bindsym $mod+comma floating toggle
 
-# Caps Lock is its own modifier ($caps, Mod3) for the Super+Shift chords.
+# Caps Lock is its own modifier ($caps, Mod3) for the Super+Shift chords;
+# see install_regolith_keyboard in install.sh.
 # Caps moves things; Caps+Super moves further (follow, other output).
 set $caps Mod3
-exec_always --no-startup-id ~/.config/regolith3/scripts/caps-hyper
 
 bindsym $caps+h move left
 bindsym $caps+j move down
