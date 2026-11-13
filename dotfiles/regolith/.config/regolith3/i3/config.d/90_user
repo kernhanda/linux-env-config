@@ -44,7 +44,9 @@ bindsym $caps+$mod+9 move container to workspace number 9; workspace number 9
 bindsym $caps+$mod+0 move container to workspace number 10; workspace number 10
 
 bindsym $caps+Tab workspace prev
-bindsym $caps+q [con_id="__focused__"] kill
+bindsym $caps+w [con_id="__focused__"] kill
+bindsym $caps+a fullscreen toggle
+bindsym $caps+z exec --no-startup-id ~/.config/regolith3/scripts/zen-toggle
 bindsym $caps+f floating toggle
 bindsym $caps+space exec --no-startup-id $wm.program.launcher.cmd -t $ilia.stylesheet
 bindsym $caps+Return exec --no-startup-id systemd-run --user --scope $wm.program.browser

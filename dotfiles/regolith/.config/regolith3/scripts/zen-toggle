@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# Toggle the focused window between a centered float (zen) and where it was.
+set -euo pipefail
+
+WIDTH=${ZEN_WIDTH:-65}
+HEIGHT=${ZEN_HEIGHT:-90}
+state_dir=${XDG_RUNTIME_DIR:-/tmp}/i3-zen
+mkdir -p "$state_dir"
+
+# Focused window, its parent, and its tiling siblings (leaves first, so a
+# restore lands next to a window rather than inside a neighbouring split).
+read -r id floating x y w h prev next < <(i3-msg -t get_tree | jq -r '
+  def kids: (.nodes // []) + (.floating_nodes // []);
+  def find: kids[] as $c | if $c.focused then {c: $c, p: .} else ($c | find) end;
+  [find][0] as $f
+  | ($f.p.nodes | map(.id) | index($f.c.id)) as $i
+  | ($f.p.nodes | map({id, leaf: ((.nodes | length) == 0)})) as $s
+  | (if $i > 0 then $s[$i - 1] else null end) as $prev
+  | ($s[$i + 1] // null) as $next
+  | [ $f.c.id, ($f.p.type == "floating_con"),
+      $f.p.rect.x, $f.p.rect.y, $f.p.rect.width, $f.p.rect.height,
+      (if $prev and ($prev.leaf or ($next | not) or ($next.leaf | not)) then $prev.id else "-" end),
+      (if $next then $next.id else "-" end) ]
+  | @tsv')
+
+state=$state_dir/$id
+mark=zen_anchor_$id
+i3() { i3-msg -q "$@"; }
+
+if [[ -f $state ]]; then
+  read -r kind a b c d < "$state"
+  rm -f "$state"
+  case $kind in
+    floating)
+      i3 "[con_id=$id] resize set $c px $d px, move absolute position $a px $b px" ;;
+    after|before)
+      i3 "[con_id=$id] floating disable"
+      if i3 "[con_id=$id] move container to mark $mark" 2>/dev/null; then
+        [[ $kind == before ]] && i3 "[con_id=$id] swap container with mark $mark"
+      fi
+      i3 "unmark $mark; [con_id=$id] focus" ;;
+    *)
+      i3 "[con_id=$id] floating disable" ;;
+  esac
+  exit
+fi
+
+if [[ $floating == true ]]; then
+  echo "floating $x $y $w $h" > "$state"
+elif [[ $prev != - ]]; then
+  i3 "[con_id=$prev] mark --add $mark"
+  echo after > "$state"
+elif [[ $next != - ]]; then
+  i3 "[con_id=$next] mark --add $mark"
+  echo before > "$state"
+else
+  echo alone > "$state"
+fi
+i3 "[con_id=$id] floating enable, resize set $WIDTH ppt $HEIGHT ppt, move position center"
