@@ -677,6 +677,21 @@ install_nvim() {
   fi
 }
 
+# Images that layer NodeSource node over the distro npm leave /usr/bin/npm
+# pointing at /usr/share/nodejs/npm, which can't load its deps under that node.
+# Prefer node's bundled npm through ~/.local/bin: it needs no sudo and survives
+# a container rebuild that resets /usr.
+link_bundled_npm() {
+  local prefix tool
+  prefix="$(dirname "$(dirname "$(readlink -f "$(command -v node)")")")"
+  [[ -f "${prefix}/lib/node_modules/npm/bin/npm-cli.js" ]] || return 1
+  mkdir -p "${HOME}/.local/bin"
+  for tool in npm npx; do
+    ln -sfn "${prefix}/lib/node_modules/npm/bin/${tool}-cli.js" "${HOME}/.local/bin/${tool}"
+  done
+  "${HOME}/.local/bin/npm" --version &>/dev/null
+}
+
 install_node() {
   local need_install=false
 
@@ -688,6 +703,9 @@ install_node() {
     if (( node_major < 22 )); then
       print_info "Node.js v${node_major} is too old (need >= 22), upgrading..."
       need_install=true
+    elif ! npm --version &>/dev/null && link_bundled_npm; then
+      print_info "Node.js $(node -v): linked its bundled npm $("${HOME}/.local/bin/npm" --version) into ~/.local/bin"
+      return 0
     elif ! npm --version &>/dev/null; then
       print_info "Node.js $(node -v) found but npm is broken, reinstalling..."
       need_install=true
